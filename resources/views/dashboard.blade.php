@@ -19,9 +19,12 @@
                 <x-icon name="target" class="w-3.5 h-3.5 text-emerald-600" />
                 <span>Anggaran</span>
             </a>
-            <form action="{{ route('logout') }}" method="POST" onsubmit="return confirm('Apakah Anda ingin keluar dari aplikasi?')">
+            <form action="{{ route('logout') }}" method="POST">
                 @csrf
-                <button type="submit" title="Keluar" class="p-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 hover:text-rose-600 text-slate-500 rounded-xl transition-all border border-slate-200/60 dark:border-slate-700/60">
+                <button type="button" 
+                        onclick="confirmAction(this.form, 'Keluar dari Akun?', 'Apakah Anda yakin ingin keluar dari aplikasi?', 'Ya, Keluar')" 
+                        title="Keluar" 
+                        class="p-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 hover:text-rose-600 text-slate-500 rounded-xl transition-all border border-slate-200/60 dark:border-slate-700/60">
                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
                 </button>
             </form>

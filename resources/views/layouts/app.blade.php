@@ -162,6 +162,12 @@
                     </button>
                 </div>
 
+                <!-- Shared Data Auto-Fill Badge -->
+                <div id="sharedDataBadge" class="hidden mt-3 p-3 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 rounded-2xl text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-2 font-semibold">
+                    <x-icon name="sparkles" class="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                    <span>Data resi pembayaran terdeteksi & terisi otomatis!</span>
+                </div>
+
                 <form action="{{ route('transactions.store') }}" method="POST" class="mt-4 space-y-4">
                     @csrf
                     
@@ -300,6 +306,46 @@
                 setTimeout(() => toast.remove(), 300);
             }
         }, 4000);
+
+        // Check for Quick Add / Shared Receipt URL parameters on load
+        window.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('quick_add') === '1' || params.has('shared_amount')) {
+                openTransactionModal();
+                
+                const sharedType = params.get('shared_type') || 'expense';
+                const typeRadio = document.querySelector(`input[name="type"][value="${sharedType}"]`);
+                if (typeRadio) {
+                    typeRadio.checked = true;
+                    toggleTypeCategories(sharedType);
+                }
+
+                const sharedCategory = params.get('shared_category_id');
+                if (sharedCategory) {
+                    const catSelect = document.getElementById('modal_category_id');
+                    if (catSelect) catSelect.value = sharedCategory;
+                }
+
+                const sharedAmount = params.get('shared_amount');
+                if (sharedAmount && parseInt(sharedAmount) > 0) {
+                    const realAmount = document.getElementById('real_amount');
+                    const displayAmount = document.getElementById('display_amount');
+                    if (realAmount && displayAmount) {
+                        realAmount.value = sharedAmount;
+                        displayAmount.value = new Intl.NumberFormat('id-ID').format(sharedAmount);
+                    }
+                }
+
+                const sharedDesc = params.get('shared_description');
+                if (sharedDesc) {
+                    const descInput = document.querySelector('input[name="description"]');
+                    if (descInput) descInput.value = sharedDesc;
+                }
+
+                const sharedBadge = document.getElementById('sharedDataBadge');
+                if (sharedBadge) sharedBadge.classList.remove('hidden');
+            }
+        });
 
         // Register PWA Service Worker
         if ('serviceWorker' in navigator) {

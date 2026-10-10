@@ -1,58 +1,168 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Catat Duit 💰
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Aplikasi pencatatan keuangan dan manajemen anggaran (*budgeting*) modern berbasis web dengan pendekatan **Mobile-First** dan dukungan **Progressive Web App (PWA)**. Dirancang khusus untuk mempermudah pencatatan transaksi harian dan monitoring batas kuota pengeluaran dengan rentang tanggal fleksibel (custom date range).
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 📱 Fitur Utama
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+1. **Desain Mobile-First & App-Like**:
+   - Tampilan responsif yang dioptimalkan untuk layar ponsel (dengan *Bottom Navigation Bar*).
+   - Tombol cepat **(+)** untuk mencatat transaksi secara instan dari halaman manapun.
+   - Format otomatis Rupiah saat mengetik nominal (`150000` -> `Rp 150.000`).
+   - Ikon vektor SVG modern dan bersih (**Lucide**) tanpa emoji berlebih.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+2. **Sistem Anggaran Fleksibel (Custom Date Range Budgeting)**:
+   - Tentukan batas pengeluaran dari **Tanggal Mulai** s/d **Tanggal Selesai** (contoh: siklus gajian *25 Januari – 24 Februari*, anggaran liburan, atau mingguan).
+   - Pilihan cepat (*Preset*): **Bulan Ini**, **Siklus Gajian (25–24)**, dan **7 Hari**.
+   - Cakupan anggaran bisa **Semua Pengeluaran (Global)** atau **Spesifik Kategori** (misal: khusus *Makanan & Minuman*).
+   - **Progress Bar Real-time**:
+     - 🟢 **Hijau**: Pemakaian aman (< 75%).
+     - 🟡 **Kuning**: Waspada mendekati batas kuota (75% – 99%).
+     - 🔴 **Merah**: Melebihi anggaran / *Overbudget* (≥ 100%).
+   - **Rekomendasi Pintar**: Rekomendasi batas aman belanja harian berdasarkan sisa kuota uang dan sisa hari.
 
-## Learning Laravel
+3. **Pencatatan & Riwayat Transaksi**:
+   - Filter transaksi lengkap berdasarkan: Tipe (*Semua / Pemasukan / Pengeluaran*), Kategori, Rentang Tanggal, dan Pencarian teks.
+   - Ringkasan total pemasukan, pengeluaran, dan selisih bersih hasil filter secara real-time.
+   - Edit dan Hapus transaksi langsung via modal.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+4. **Kategori Finansial**:
+   - Tersedia 14 kategori standar bawaan (Makanan & Minuman, Transportasi, Belanja Harian, Tagihan, Gaji, Bonus, dll.).
+   - Tambah dan sesuaikan kategori dengan pilihan ikon SVG dan palet warna.
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+5. **Autentikasi Pengguna Tunggal & Sesi Permanen**:
+   - Proteksi login akun tunggal (tanpa formulir register publik).
+   - Sesi login diatur bertahan selama **1 tahun** (*Persistent Remember Me*), sehingga tidak perlu login ulang setiap membuka aplikasi.
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+---
 
-## Agentic Development
+## 📲 Catatan & Panduan PWA (Progressive Web App)
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+Aplikasi ini sudah mendukung standar PWA penuh, memungkinkan aplikasi dipasang langsung di layar utama smartphone (*Home Screen*) dan dibuka dalam mode *standalone* (layar penuh tanpa address bar browser).
 
+### 1. Cara Pasang di Smartphone
+
+#### Android (Google Chrome / Edge / Brave):
+1. Buka URL aplikasi di browser Chrome HP (misal: `http://[IP-Komputer]:8000` atau domain aplikasi Anda).
+2. Banner **"Pasang Aplikasi Catat Duit"** akan muncul di bagian atas layar. Klik tombol **Pasang**.
+3. Jika banner tidak muncul, tekan ikon **Menu titik tiga (⋮)** di pojok kanan atas browser > pilih **"Install app"** atau **"Tambahkan ke Layar Utama" (Add to Home screen)**.
+4. Ikon **Catat Duit** akan muncul di menu dan beranda HP Anda.
+
+#### iOS / iPhone & iPad (Safari):
+1. Buka URL aplikasi di browser **Safari**.
+2. Tekan tombol **Share** (ikon kotak dengan panah mengarah ke atas di bar bawah).
+3. Gulir ke bawah dan pilih **"Add to Home Screen" (Tambahkan ke Layar Utama)**.
+4. Tekan **Add** di pojok kanan atas.
+
+---
+
+### 2. Bagaimana Jika Ada Update Aplikasi? Apakah Perlu Reinstall?
+
+> **TIDAK PERLU REINSTALL SAMA SEKALI!**
+
+PWA bekerja layaknya aplikasi web modern yang selalu terhubung ke server:
+* **Pembaruan Otomatis**: Setiap kali Anda membuka aplikasi dari beranda HP, Service Worker (`sw.js`) di latar belakang akan otomatis memeriksa ke server apakah ada perubahan kode/file baru.
+* **Menerapkan Update**: Anda cukup menutup aplikasi (swipe close dari recent apps) lalu membukanya kembali, atau lakukan *pull-to-refresh* (tarik layar ke bawah untuk memuat ulang).
+* **Manajemen Versi Cache (Untuk Developer)**:
+  Jika Anda melakukan perubahan besar pada kode CSS/JS/Blade, Anda cukup memperbarui versi cache di file [`public/sw.js`](public/sw.js):
+  ```javascript
+  // Ubah versi dari v1 ke v2 saat rilis update baru
+  const CACHE_NAME = 'catatduit-v2';
+  ```
+  Browser di perangkat HP pengguna akan otomatis membuang cache lama dan memuat versi terbaru tanpa perlu memasang ulang ikon aplikasi.
+
+### 3. Fitur Bagikan Resi / Pembayaran ke Catat Duit (Web Share Target)
+
+Aplikasi ini mendukung penerimaan resi atau teks transaksi dari aplikasi perbankan/e-wallet (*BCA, Mandiri Livin, GoPay, OVO, DANA, ShopeePay, Tokopedia, dll.*):
+1. Di aplikasi bank/e-wallet Anda, klik tombol **"Bagikan / Share Resi"**.
+2. Pilih **Catat Duit** dari daftar aplikasi (*Share Sheet*).
+3. Catat Duit akan otomatis terbuka dan melakukan **Smart Parser**:
+   - Nominal otomatis terekstrak dari format mata uang (misal `Rp 45.000` -> `45000`).
+   - Kategori otomatis terdeteksi dari kata kunci (misal: *kopi/resto/makan* -> Kategori **Makanan & Minuman**).
+   - Catatan/keterangan merchant terisi otomatis.
+4. Anda cukup klik **"Simpan Transaksi"** (selesai dalam 1 detik!).
+
+---
+
+## 🛠️ Stack Teknologi
+
+- **Backend**: Laravel 12 / 13 (PHP 8.3+)
+- **Database**: MySQL
+- **Frontend**: Blade Template + Tailwind CSS v4 + Vanilla JS
+- **Asset Bundler**: Vite
+- **Icons**: Lucide SVG Icons Component
+- **PWA**: Web App Manifest (`manifest.json`) + Service Worker (`sw.js`)
+- **Code Formatter & Testing**: Laravel Pint & PHPUnit (12 Tests, 32 Assertions)
+
+---
+
+## 🚀 Panduan Instalasi Lokal (Laragon / XAMPP)
+
+### 1. Clone & Install Dependensi
 ```bash
-composer require laravel/boost --dev
+# Install PHP dependencies
+composer install
 
-php artisan boost:install
+# Install Node dependencies
+npm install
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### 2. Konfigurasi Environment & Database
+Salin `.env.example` ke `.env` dan sesuaikan koneksi database MySQL:
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=catat_duit
+DB_USERNAME=root
+DB_PASSWORD=
 
-## Contributing
+# Konfigurasi sesi permanen 1 tahun
+SESSION_DRIVER=database
+SESSION_LIFETIME=525600
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 3. Generate Key & Migrasi Database
+```bash
+php artisan key:generate
+php artisan migrate --seed
+```
 
-## Code of Conduct
+*Seeder akan otomatis membuat 1 akun pengguna default dan 14 kategori finansial bawaan.*
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 4. Akun Login Default
+* **Email**: `admin@catatduit.com`
+* **Password**: `password`
 
-## Security Vulnerabilities
+### 5. Menjalankan Server Pengembangan
+Jalankan perintah berikut:
+```bash
+# Terminal 1: Laravel Server
+php artisan serve
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+# Terminal 2: Vite Asset Watcher (atau jalankan npm run build untuk produksi)
+npm run build
+```
 
-## License
+Buka browser di **`http://localhost:8000`** atau domain lokal Laragon Anda.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+---
+
+## 🧪 Pengujian & Standarisasi Kode
+
+Menjalankan pengujian fitur otomatis (PHPUnit):
+```bash
+php artisan test --compact
+```
+
+Memformat kode sesuai standar PSR-12 / Laravel (Pint):
+```bash
+vendor/bin/pint --format agent
+```
+
+---
+
+## 📄 Lisensi
+
+Aplikasi ini bersifat *open-source* di bawah lisensi [MIT](LICENSE).

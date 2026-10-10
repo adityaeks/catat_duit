@@ -49,10 +49,12 @@
                             <x-icon name="edit-3" class="w-4 h-4" />
                         </button>
                         @if($cat->transactions_count == 0)
-                            <form action="{{ route('categories.destroy', $cat) }}" method="POST" onsubmit="return confirm('Hapus kategori ini?')">
+                            <form action="{{ route('categories.destroy', $cat) }}" method="POST">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-all">
+                                <button type="button" 
+                                        onclick="confirmDelete(this.form, 'Hapus Kategori?', 'Kategori {{ addslashes($cat->name) }} akan dihapus.')" 
+                                        class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-all">
                                     <x-icon name="trash-2" class="w-4 h-4" />
                                 </button>
                             </form>
@@ -92,10 +94,12 @@
                             <x-icon name="edit-3" class="w-4 h-4" />
                         </button>
                         @if($cat->transactions_count == 0)
-                            <form action="{{ route('categories.destroy', $cat) }}" method="POST" onsubmit="return confirm('Hapus kategori ini?')">
+                            <form action="{{ route('categories.destroy', $cat) }}" method="POST">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-all">
+                                <button type="button" 
+                                        onclick="confirmDelete(this.form, 'Hapus Kategori?', 'Kategori {{ addslashes($cat->name) }} akan dihapus.')" 
+                                        class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-all">
                                     <x-icon name="trash-2" class="w-4 h-4" />
                                 </button>
                             </form>

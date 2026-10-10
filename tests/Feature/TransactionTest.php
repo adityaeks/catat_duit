@@ -67,4 +67,25 @@ class TransactionTest extends TestCase
             'id' => $tx->id,
         ]);
     }
+
+    public function test_can_receive_and_parse_shared_receipt(): void
+    {
+        $user = User::factory()->create();
+        $foodCat = Category::firstOrCreate(
+            ['name' => 'Makanan & Minuman', 'type' => 'expense'],
+            ['icon' => 'utensils', 'color' => '#f97316']
+        );
+
+        $response = $this->actingAs($user)->get(route('transactions.share-receive', [
+            'text' => 'Transfer Berhasil Sebesar Rp 45.000 ke Kopi Kenangan via BCA',
+        ]));
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $targetUrl = $response->headers->get('Location');
+        $this->assertStringContainsString('quick_add=1', $targetUrl);
+        $this->assertStringContainsString('shared_amount=45000', $targetUrl);
+        $this->assertStringContainsString('shared_category_id='.$foodCat->id, $targetUrl);
+    }
 }

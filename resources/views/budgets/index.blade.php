@@ -92,10 +92,12 @@
                                         class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-all">
                                     <x-icon name="edit-3" class="w-4 h-4" />
                                 </button>
-                                <form action="{{ route('budgets.destroy', $budget) }}" method="POST" onsubmit="return confirm('Hapus anggaran ini?')">
+                                <form action="{{ route('budgets.destroy', $budget) }}" method="POST">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-all">
+                                    <button type="button" 
+                                            onclick="confirmDelete(this.form, 'Hapus Anggaran?', 'Anggaran {{ addslashes($budget->name) }} akan dihapus secara permanen.')" 
+                                            class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-all">
                                         <x-icon name="trash-2" class="w-4 h-4" />
                                     </button>
                                 </form>
@@ -171,10 +173,12 @@
                                 </div>
                                 <div class="text-right flex items-center gap-2">
                                     <p class="text-xs font-bold text-slate-700 dark:text-slate-300">Rp {{ number_format($budget->amount, 0, ',', '.') }}</p>
-                                    <form action="{{ route('budgets.destroy', $budget) }}" method="POST" onsubmit="return confirm('Hapus anggaran ini?')">
+                                    <form action="{{ route('budgets.destroy', $budget) }}" method="POST">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="p-1 text-slate-400 hover:text-rose-600">
+                                        <button type="button" 
+                                                onclick="confirmDelete(this.form, 'Hapus Anggaran?', 'Anggaran {{ addslashes($budget->name) }} akan dihapus secara permanen.')" 
+                                                class="p-1 text-slate-400 hover:text-rose-600">
                                             <x-icon name="trash-2" class="w-4 h-4" />
                                         </button>
                                     </form>
@@ -200,10 +204,12 @@
                                     <span class="text-xs font-semibold {{ $budget->spent_amount > $budget->amount ? 'text-rose-600' : 'text-emerald-600' }}">
                                         {{ $budget->percentage }}%
                                     </span>
-                                    <form action="{{ route('budgets.destroy', $budget) }}" method="POST" onsubmit="return confirm('Hapus anggaran ini?')">
+                                    <form action="{{ route('budgets.destroy', $budget) }}" method="POST">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="p-1 text-slate-400 hover:text-rose-600">
+                                        <button type="button" 
+                                                onclick="confirmDelete(this.form, 'Hapus Anggaran?', 'Anggaran {{ addslashes($budget->name) }} akan dihapus secara permanen.')" 
+                                                class="p-1 text-slate-400 hover:text-rose-600">
                                             <x-icon name="trash-2" class="w-4 h-4" />
                                         </button>
                                     </form>

@@ -140,10 +140,12 @@
                                         class="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
                                     <x-icon name="edit-3" class="w-3.5 h-3.5" />
                                 </button>
-                                <form action="{{ route('transactions.destroy', $tx) }}" method="POST" onsubmit="return confirm('Hapus transaksi ini?')">
+                                <form action="{{ route('transactions.destroy', $tx) }}" method="POST">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="p-1 text-slate-400 hover:text-rose-600">
+                                    <button type="button" 
+                                            onclick="confirmDelete(this.form, 'Hapus Transaksi?', 'Transaksi senilai Rp {{ number_format($tx->amount, 0, ',', '.') }} akan dihapus.')" 
+                                            class="p-1 text-slate-400 hover:text-rose-600">
                                         <x-icon name="trash-2" class="w-3.5 h-3.5" />
                                     </button>
                                 </form>

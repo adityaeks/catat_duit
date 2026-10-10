@@ -16,6 +16,7 @@ Route::middleware('guest')->group(function () {
 // Protected Application Routes (Auth Required)
 Route::middleware('auth')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/share-receive', [TransactionController::class, 'receiveShare'])->name('transactions.share-receive');
     Route::resource('transactions', TransactionController::class)->except(['create', 'show', 'edit']);
     Route::resource('budgets', BudgetController::class)->except(['create', 'show', 'edit']);
     Route::resource('categories', CategoryController::class)->except(['create', 'show', 'edit']);
