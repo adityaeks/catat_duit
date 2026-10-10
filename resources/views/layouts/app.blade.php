@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>{{ $title ?? 'Catat Duit - Kelola Keuangan & Anggaran' }}</title>
     
+    <!-- PWA Meta Tags & Icons -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#059669">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Catat Duit">
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png">
+    
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -71,6 +81,27 @@
                 </ul>
             </div>
         @endif
+
+        <!-- PWA Install Prompt Banner (Visible only when browser triggers beforeinstallprompt) -->
+        <div id="pwaInstallBanner" class="hidden mx-4 mt-3 p-3.5 bg-gradient-to-r from-emerald-700 to-teal-700 text-white rounded-2xl shadow-lg border border-emerald-500/30 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5 overflow-hidden">
+                <div class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
+                    <img src="/icons/icon-192x192.png" alt="Catat Duit" class="w-7 h-7 rounded-lg">
+                </div>
+                <div class="overflow-hidden">
+                    <p class="text-xs font-bold leading-tight truncate">Pasang Aplikasi Catat Duit</p>
+                    <p class="text-[10px] text-emerald-100 opacity-90 truncate">Akses cepat langsung dari beranda HP</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-1.5 flex-shrink-0">
+                <button type="button" onclick="triggerPwaInstall()" class="px-3 py-1.5 bg-white text-emerald-800 hover:bg-emerald-50 text-xs font-bold rounded-xl shadow-sm transition-all active:scale-95">
+                    Pasang
+                </button>
+                <button type="button" onclick="document.getElementById('pwaInstallBanner').classList.add('hidden')" class="p-1 text-white/70 hover:text-white rounded-lg">
+                    <x-icon name="x" class="w-4 h-4" />
+                </button>
+            </div>
+        </div>
 
         <!-- Main Content Area -->
         <main class="flex-1 pb-24">
@@ -269,6 +300,40 @@
                 setTimeout(() => toast.remove(), 300);
             }
         }, 4000);
+
+        // Register PWA Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((reg) => console.log('PWA Service Worker registered:', reg.scope))
+                    .catch((err) => console.log('PWA Service Worker registration failed:', err));
+            });
+        }
+
+        // PWA Install Prompt Handler
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            const installBanner = document.getElementById('pwaInstallBanner');
+            if (installBanner) {
+                installBanner.classList.remove('hidden');
+            }
+        });
+
+        function triggerPwaInstall() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the PWA install prompt');
+                    }
+                    deferredPrompt = null;
+                    const installBanner = document.getElementById('pwaInstallBanner');
+                    if (installBanner) installBanner.classList.add('hidden');
+                });
+            }
+        }
     </script>
 </body>
 </html>

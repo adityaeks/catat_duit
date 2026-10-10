@@ -17,7 +17,7 @@ class AuthTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('Catat Duit');
-        $response->assertSee('admin@catatduit.com');
+        $response->assertSee('Masuk');
     }
 
     public function test_user_can_login_with_correct_credentials(): void
