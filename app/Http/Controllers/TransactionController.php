@@ -93,9 +93,9 @@ class TransactionController extends Controller
 
     public function receiveShare(Request $request)
     {
-        $title = (string) $request->query('title', '');
-        $text = (string) $request->query('text', '');
-        $url = (string) $request->query('url', '');
+        $title = (string) $request->input('title', '');
+        $text = (string) $request->input('text', '');
+        $url = (string) $request->input('url', '');
 
         $combined = trim($title.' '.$text.' '.$url);
 
