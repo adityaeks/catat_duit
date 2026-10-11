@@ -6,6 +6,7 @@ use App\Models\Budget;
 use App\Models\Category;
 use App\Models\Transaction;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -97,5 +98,60 @@ class BudgetTest extends TestCase
         $this->assertEquals(350000, $budget->remaining_amount);
         $this->assertEquals(30.0, $budget->percentage);
         $this->assertEquals('safe', $budget->status);
+    }
+
+    public function test_daily_recommendation_is_locked_during_current_day_and_recalculates_next_day(): void
+    {
+        Carbon::setTestNow('2026-10-11 10:00:00');
+
+        $category = Category::firstOrCreate(
+            ['name' => 'Makan', 'type' => 'expense'],
+            ['icon' => 'utensils', 'color' => '#f97316']
+        );
+
+        $budget = Budget::create([
+            'name' => 'Budget Harian Tetap',
+            'amount' => 450000,
+            'start_date' => '2026-10-10',
+            'end_date' => '2026-10-25',
+        ]);
+
+        // Pengeluaran kemarin (10 Oct): Rp 50.000
+        Transaction::create([
+            'category_id' => $category->id,
+            'type' => 'expense',
+            'amount' => 50000,
+            'transaction_date' => '2026-10-10',
+            'description' => 'Kemarin',
+        ]);
+
+        // Awal hari ini (11 Oct):
+        // Sisa hari: 15 hari. Sisa sebelum hari ini: 400.000.
+        // Batas aman: 400.000 / 15 = 26.667
+        $this->assertEquals(15, $budget->days_remaining);
+        $this->assertEquals(26667, $budget->daily_remaining_recommendation);
+
+        // Pengeluaran hari ini jam 1 siang: Rp 20.000
+        Carbon::setTestNow('2026-10-11 13:00:00');
+        Transaction::create([
+            'category_id' => $category->id,
+            'type' => 'expense',
+            'amount' => 20000,
+            'transaction_date' => '2026-10-11',
+            'description' => 'Hari ini siang',
+        ]);
+
+        // Batas harian hari ini HARUS TETAP 26.667 (tidak berubah di tengah hari)
+        $this->assertEquals(26667, $budget->fresh()->daily_remaining_recommendation);
+
+        // Keesokan harinya (12 Oct jam 08:00):
+        Carbon::setTestNow('2026-10-12 08:00:00');
+
+        // Sisa hari: 14 hari. Sisa saldo: 450.000 - 70.000 = 380.000.
+        // Batas aman baru: 380.000 / 14 = 27.143
+        $this->assertEquals(14, $budget->fresh()->days_remaining);
+        $this->assertEquals(27143, $budget->fresh()->daily_remaining_recommendation);
+
+        Carbon::setTestNow();
     }
 }

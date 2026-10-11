@@ -45,10 +45,8 @@ class Budget extends Model
     public function getSpentAmountAttribute(): float
     {
         $query = Transaction::where('type', 'expense')
-            ->whereBetween('transaction_date', [
-                $this->start_date->format('Y-m-d'),
-                $this->end_date->format('Y-m-d'),
-            ]);
+            ->whereDate('transaction_date', '>=', $this->start_date->format('Y-m-d'))
+            ->whereDate('transaction_date', '<=', $this->end_date->format('Y-m-d'));
 
         if ($this->category_id) {
             $query->where('category_id', $this->category_id);
@@ -94,33 +92,88 @@ class Budget extends Model
     }
 
     /**
+     * Calculate spent amount before today within this budget period.
+     */
+    public function getSpentBeforeTodayAttribute(): float
+    {
+        $today = now()->format('Y-m-d');
+        $startDate = $this->start_date->format('Y-m-d');
+
+        if ($today <= $startDate) {
+            return 0.0;
+        }
+
+        $query = Transaction::where('type', 'expense')
+            ->whereDate('transaction_date', '>=', $startDate)
+            ->whereDate('transaction_date', '<', $today);
+
+        if ($this->category_id) {
+            $query->where('category_id', $this->category_id);
+        }
+
+        return (float) $query->sum('amount');
+    }
+
+    /**
+     * Calculate spent amount specifically today within this budget.
+     */
+    public function getSpentTodayAttribute(): float
+    {
+        $today = now()->format('Y-m-d');
+
+        if ($today < $this->start_date->format('Y-m-d') || $today > $this->end_date->format('Y-m-d')) {
+            return 0.0;
+        }
+
+        $query = Transaction::where('type', 'expense')
+            ->whereDate('transaction_date', $today);
+
+        if ($this->category_id) {
+            $query->where('category_id', $this->category_id);
+        }
+
+        return (float) $query->sum('amount');
+    }
+
+    /**
      * Remaining days in budget period.
      */
     public function getDaysRemainingAttribute(): int
     {
         $today = now()->startOfDay();
+        $startDate = $this->start_date->startOfDay();
         $endDate = $this->end_date->startOfDay();
 
         if ($today->gt($endDate)) {
             return 0;
         }
 
-        return (int) $today->diffInDays($endDate) + 1;
+        $effectiveStart = $today->lt($startDate) ? $startDate : $today;
+
+        return (int) $effectiveStart->diffInDays($endDate) + 1;
     }
 
     /**
      * Daily budget recommendation for remaining days.
+     * Locked for the current day so intraday expenses do not fluctuate the target,
+     * and automatically recalculates on the next day based on remaining balance.
      */
     public function getDailyRemainingRecommendationAttribute(): float
     {
         $days = $this->days_remaining;
-        $remaining = $this->remaining_amount;
 
-        if ($days <= 0 || $remaining <= 0) {
+        if ($days <= 0 || $this->remaining_amount <= 0) {
             return 0.0;
         }
 
-        return round($remaining / $days, 0);
+        // Sisa anggaran di awal hari ini (sebelum pengeluaran hari ini)
+        $remainingAtStartOfDay = (float) ($this->amount - $this->spent_before_today);
+
+        if ($remainingAtStartOfDay <= 0) {
+            return 0.0;
+        }
+
+        return round($remainingAtStartOfDay / $days, 0);
     }
 
     /**
