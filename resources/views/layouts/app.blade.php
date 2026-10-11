@@ -168,7 +168,7 @@
                     <span>Data resi pembayaran terdeteksi & terisi otomatis!</span>
                 </div>
 
-                <form action="{{ route('transactions.store') }}" method="POST" class="mt-4 space-y-4">
+                <form action="{{ route('transactions.store') }}" method="POST" class="mt-4 space-y-4" onsubmit="const btn = this.querySelector('button[type=submit]'); if (btn) { btn.disabled = true; btn.classList.add('opacity-75'); btn.innerHTML = '<span>Menyimpan...</span>'; }">
                     @csrf
                     
                     <!-- Segmented Control: Pengeluaran vs Pemasukan -->
@@ -344,6 +344,10 @@
 
                 const sharedBadge = document.getElementById('sharedDataBadge');
                 if (sharedBadge) sharedBadge.classList.remove('hidden');
+
+                // Bersihkan parameter URL dari browser history agar saat simpan/refresh modal tidak terbuka lagi
+                const cleanUrl = window.location.pathname;
+                window.history.replaceState({}, document.title, cleanUrl);
             }
         });
 

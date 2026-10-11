@@ -66,6 +66,31 @@ class TransactionController extends Controller
 
         Transaction::create($validated);
 
+        $referer = $request->headers->get('referer');
+        if ($referer) {
+            $parsedUrl = parse_url($referer);
+            if (! empty($parsedUrl['query'])) {
+                parse_str($parsedUrl['query'], $queryParams);
+                $keysToRemove = ['quick_add', 'shared_amount', 'shared_type', 'shared_category_id', 'shared_description', 'shared_raw'];
+                $hasDirtyParam = false;
+                foreach ($keysToRemove as $key) {
+                    if (isset($queryParams[$key])) {
+                        unset($queryParams[$key]);
+                        $hasDirtyParam = true;
+                    }
+                }
+
+                if ($hasDirtyParam) {
+                    $cleanUrl = ($parsedUrl['scheme'] ?? 'http').'://'.($parsedUrl['host'] ?? 'localhost').(isset($parsedUrl['port']) ? ':'.$parsedUrl['port'] : '').($parsedUrl['path'] ?? '/');
+                    if (! empty($queryParams)) {
+                        $cleanUrl .= '?'.http_build_query($queryParams);
+                    }
+
+                    return redirect($cleanUrl)->with('success', 'Transaksi berhasil disimpan!');
+                }
+            }
+        }
+
         return back()->with('success', 'Transaksi berhasil disimpan!');
     }
 

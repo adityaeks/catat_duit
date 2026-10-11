@@ -88,4 +88,31 @@ class TransactionTest extends TestCase
         $this->assertStringContainsString('shared_amount=45000', $targetUrl);
         $this->assertStringContainsString('shared_category_id='.$foodCat->id, $targetUrl);
     }
+
+    public function test_store_cleans_dirty_shared_query_parameters_on_redirect(): void
+    {
+        $user = User::factory()->create();
+        $cat = Category::firstOrCreate(
+            ['name' => 'Belanja Harian', 'type' => 'expense'],
+            ['icon' => 'shopping-cart', 'color' => '#10b981']
+        );
+
+        $refererWithShareParams = 'http://localhost/dashboard?quick_add=1&shared_amount=50000&shared_type=expense';
+
+        $response = $this->actingAs($user)
+            ->from($refererWithShareParams)
+            ->post(route('transactions.store'), [
+                'type' => 'expense',
+                'category_id' => $cat->id,
+                'amount' => 50000,
+                'transaction_date' => '2026-10-11',
+                'description' => 'Belanja minimarket',
+            ]);
+
+        $response->assertRedirect();
+        $targetUrl = $response->headers->get('Location');
+        $this->assertStringNotContainsString('quick_add=1', $targetUrl);
+        $this->assertStringNotContainsString('shared_amount=50000', $targetUrl);
+        $this->assertEquals('http://localhost/dashboard', $targetUrl);
+    }
 }
