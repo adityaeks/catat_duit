@@ -15,6 +15,14 @@
             </div>
         </div>
         <div class="flex items-center gap-1.5">
+            <button type="button" 
+                    onclick="openReminderModal()" 
+                    id="reminderBellBtn"
+                    title="Pengingat Jam 5 Sore"
+                    class="p-2 surface-card hover:surface-elevated text-slate-400 hover:text-white rounded-xl transition-all relative cursor-pointer">
+                <x-icon name="bell" class="w-4 h-4" />
+                <span id="reminderActiveBadge" class="hidden absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-[#0B0F19]"></span>
+            </button>
             <a href="{{ route('budgets.index') }}" class="px-3 py-1.5 surface-card hover:surface-elevated text-slate-300 hover:text-white rounded-xl text-xs font-medium transition-all flex items-center gap-1.5">
                 <x-icon name="target" class="w-3.5 h-3.5 text-emerald-400" />
                 <span>Anggaran</span>

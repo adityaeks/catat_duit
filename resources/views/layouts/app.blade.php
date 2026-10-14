@@ -166,6 +166,70 @@
             </div>
         </nav>
 
+        <!-- Global Daily Reminder Modal (Jam 17:00) -->
+        <div id="reminderModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden flex items-end justify-center sm:items-center p-0 sm:p-4 transition-all">
+            <div class="surface-elevated w-full max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl p-5 sm:p-6 border border-white/[0.1] transform transition-all animate-in fade-in duration-200">
+                
+                <div class="flex items-center justify-between pb-3.5 border-b border-white/[0.08]">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 flex items-center justify-center flex-shrink-0">
+                            <x-icon name="bell" class="w-4 h-4" />
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-white leading-tight">Pengingat Harian</h3>
+                            <p class="text-[11px] text-slate-400">Notifikasi jam 5 sore (17:00 WIB)</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="closeReminderModal()" class="p-1.5 text-slate-400 hover:text-white rounded-xl hover:bg-white/[0.06] transition-all cursor-pointer">
+                        <x-icon name="x" class="w-4 h-4" />
+                    </button>
+                </div>
+
+                <div class="mt-4 space-y-4">
+                    <!-- Toggle Card -->
+                    <div class="p-4 surface-card rounded-2xl flex items-center justify-between gap-4">
+                        <div>
+                            <p class="text-xs font-bold text-white">Aktifkan Pengingat</p>
+                            <p class="text-[11px] text-slate-400 mt-0.5 leading-snug">Kirim notifikasi setiap sore agar tidak lupa mencatat</p>
+                            <div id="reminderStatusText" class="mt-1.5 text-[11px]"></div>
+                        </div>
+                        <!-- Modern Style Toggle Switch -->
+                        <label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                            <input type="checkbox" id="reminderToggleInput" onchange="toggleDailyReminder()" class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                        </label>
+                    </div>
+
+                    <!-- Info Box -->
+                    <div class="p-3.5 surface-inset rounded-2xl space-y-2 text-xs">
+                        <div class="flex items-center gap-2 text-slate-300 font-semibold text-[11px]">
+                            <x-icon name="clock" class="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                            <span>Jadwal Pengiriman: 17:00 WIB</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 leading-relaxed">
+                            Pesan yang akan muncul di HP Anda:
+                        </p>
+                        <div class="p-2.5 bg-black/40 border border-white/[0.06] rounded-xl text-[11px] text-slate-300">
+                            <p class="font-bold text-white flex items-center gap-1.5">
+                                <span>Catat Duit 💰</span>
+                                <span class="text-[9px] px-1.5 py-0.2 bg-emerald-500/20 text-emerald-300 rounded font-normal">17:00</span>
+                            </p>
+                            <p class="text-slate-400 mt-0.5">Sudah jam 5 sore nih! Jangan lupa catat pengeluaran hari ini ya.</p>
+                        </div>
+                    </div>
+
+                    <!-- Test Button -->
+                    <button type="button" 
+                            onclick="testReminderNotification()" 
+                            class="w-full py-3 surface-card hover:surface-elevated active:scale-[0.98] text-slate-200 hover:text-white font-semibold rounded-2xl transition-all text-xs flex items-center justify-center gap-2 cursor-pointer border border-white/[0.08]">
+                        <x-icon name="sparkles" class="w-4 h-4 text-emerald-400" />
+                        <span>🔔 Uji Coba Notifikasi Sekarang</span>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
         <!-- Global Quick Transaction Modal -->
         <div id="quickTransactionModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-end justify-center sm:items-center p-0 sm:p-4 transition-all">
             <div class="surface-elevated w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl p-5 sm:p-6 border border-white/[0.1] transform transition-all animate-in fade-in duration-200 max-h-[92vh] overflow-y-auto">

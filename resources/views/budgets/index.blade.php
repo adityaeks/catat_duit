@@ -18,7 +18,7 @@
                 onclick="openBudgetModal()" 
                 class="px-3.5 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl text-xs font-bold shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer">
             <x-icon name="plus" class="w-4 h-4 stroke-[2.5]" />
-            <span>Buat Budget</span>
+            <span>Budget</span>
         </button>
     </div>
 

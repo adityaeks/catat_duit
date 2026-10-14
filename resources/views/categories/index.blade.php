@@ -33,7 +33,7 @@
 
         <div class="grid grid-cols-1 gap-2.5">
             @foreach($expenseCategories as $cat)
-                <div class="p-3.5 bg-[#111726] border border-white/[0.08] hover:border-white/[0.14] rounded-2xl flex items-center justify-between gap-3 shadow-md transition-all">
+                <div class="p-3.5 surface-card surface-card-hover rounded-2xl flex items-center justify-between gap-3 shadow-md transition-all">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-white shadow-inner" style="background-color: {{ $cat->color }}">
                             <x-icon :name="$cat->icon" class="w-5 h-5" />
@@ -80,7 +80,7 @@
 
         <div class="grid grid-cols-1 gap-2.5">
             @foreach($incomeCategories as $cat)
-                <div class="p-3.5 bg-[#111726] border border-white/[0.08] hover:border-white/[0.14] rounded-2xl flex items-center justify-between gap-3 shadow-md transition-all">
+                <div class="p-3.5 surface-card surface-card-hover rounded-2xl flex items-center justify-between gap-3 shadow-md transition-all">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-white shadow-inner" style="background-color: {{ $cat->color }}">
                             <x-icon :name="$cat->icon" class="w-5 h-5" />
@@ -120,7 +120,7 @@
 
 <!-- Modal Create / Edit Category -->
 <div id="categoryModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-md hidden flex items-end justify-center sm:items-center p-0 sm:p-4">
-    <div class="bg-[#111726] text-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl p-6 border border-white/[0.1] max-h-[92vh] overflow-y-auto">
+    <div class="surface-elevated text-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl p-6 border border-white/[0.1] max-h-[92vh] overflow-y-auto">
         
         <div class="flex items-center justify-between pb-4 border-b border-white/[0.08]">
             <h3 id="categoryModalTitle" class="text-base font-bold text-white flex items-center gap-2">
@@ -139,7 +139,7 @@
             <div id="categoryFormMethod"></div>
 
             <!-- Type -->
-            <div class="grid grid-cols-2 p-1 bg-[#0B0F19] rounded-2xl border border-white/[0.08]">
+            <div class="grid grid-cols-2 p-1 surface-inset rounded-2xl">
                 <label class="cursor-pointer">
                     <input type="radio" name="type" id="cat_type_expense" value="expense" checked class="peer sr-only">
                     <div class="py-2.5 text-center text-xs font-semibold rounded-xl text-slate-400 peer-checked:bg-rose-500/20 peer-checked:text-rose-300 peer-checked:border peer-checked:border-rose-500/30 transition-all">
@@ -162,13 +162,13 @@
                        id="cat_name" 
                        required 
                        placeholder="Contoh: Belanja Online, Kopi, Investasi" 
-                       class="w-full px-4 py-3 bg-[#0B0F19] border border-white/[0.1] rounded-2xl text-sm font-semibold text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 select-text transition-all">
+                       class="w-full px-4 py-3 surface-inset rounded-2xl text-sm font-semibold text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 select-text transition-all">
             </div>
 
             <!-- Pilihan Ikon SVG -->
             <div>
                 <label class="block text-xs font-semibold text-slate-400 mb-1.5">Pilih Ikon</label>
-                <div class="grid grid-cols-6 gap-2 p-2.5 bg-[#0B0F19] rounded-2xl border border-white/[0.08]">
+                <div class="grid grid-cols-6 gap-2 p-2.5 surface-inset rounded-2xl">
                     @php
                         $iconList = [
                             'utensils', 'car', 'shopping-cart', 'receipt', 'gamepad-2', 
@@ -190,7 +190,7 @@
             <!-- Pilihan Warna Kategori -->
             <div>
                 <label class="block text-xs font-semibold text-slate-400 mb-1.5">Warna Aksen</label>
-                <div class="flex items-center gap-2.5 flex-wrap p-2.5 bg-[#0B0F19] rounded-2xl border border-white/[0.08]">
+                <div class="flex items-center gap-2.5 flex-wrap p-2.5 surface-inset rounded-2xl">
                     @php
                         $colors = ['#f97316', '#ef4444', '#ec4899', '#8b5cf6', '#6366f1', '#3b82f6', '#06b6d4', '#10b981', '#059669', '#eab308', '#64748b'];
                     @endphp

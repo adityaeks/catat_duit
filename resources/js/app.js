@@ -62,3 +62,12 @@ window.confirmAction = function (formOrCallback, title = 'Konfirmasi', text = 'A
         }
     });
 };
+
+// Initialize PWA Daily Reminder System
+import { initReminder } from './reminder.js';
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initReminder);
+} else {
+    initReminder();
+}

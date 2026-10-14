@@ -43,9 +43,9 @@
         }
     </style>
 </head>
-<body class="min-h-screen bg-[#0B0F19] text-slate-100 antialiased flex items-center justify-center p-4 select-none">
+<body class="min-h-screen surface-canvas text-slate-100 antialiased flex items-center justify-center p-4 select-none">
 
-    <div class="w-full max-w-md bg-[#111726] border border-white/[0.08] rounded-3xl shadow-2xl p-6 sm:p-8 space-y-6">
+    <div class="w-full max-w-md surface-card rounded-3xl shadow-2xl p-6 sm:p-8 space-y-6">
         
         <!-- Logo & Title -->
         <div class="text-center space-y-3">
@@ -91,7 +91,7 @@
                            required 
                            autocomplete="email"
                            placeholder="nama@email.com" 
-                           class="w-full pl-10 pr-4 py-3 bg-[#0B0F19] border border-white/[0.1] rounded-2xl text-sm font-medium text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 select-text transition-all">
+                           class="w-full pl-10 pr-4 py-3 surface-inset rounded-2xl text-sm font-medium text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 select-text transition-all">
                 </div>
             </div>
 
@@ -107,7 +107,7 @@
                            id="login_password"
                            required 
                            placeholder="••••••••" 
-                           class="w-full pl-10 pr-4 py-3 bg-[#0B0F19] border border-white/[0.1] rounded-2xl text-sm font-medium text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 select-text transition-all">
+                           class="w-full pl-10 pr-4 py-3 surface-inset rounded-2xl text-sm font-medium text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 select-text transition-all">
                 </div>
             </div>
 
