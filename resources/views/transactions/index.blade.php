@@ -12,12 +12,20 @@
             </h1>
             <p class="text-[11px] text-slate-400 font-medium">Semua catatan pemasukan dan pengeluaran</p>
         </div>
-        <button type="button" 
-                onclick="openTransactionModal()" 
-                class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95 shadow-sm">
-            <x-icon name="plus" class="w-3.5 h-3.5 stroke-[2.5]" />
-            <span>Tambah</span>
-        </button>
+        <div class="flex items-center gap-1.5">
+            <button type="button" 
+                    onclick="openTransactionModal(); setTimeout(() => document.getElementById('ocrReceiptInput')?.click(), 150);" 
+                    class="px-2.5 py-1.5 surface-card hover:surface-elevated text-emerald-300 hover:text-white rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 active:scale-95 border border-emerald-500/25 cursor-pointer">
+                <x-icon name="camera" class="w-3.5 h-3.5 text-emerald-400" />
+                <span>Scan</span>
+            </button>
+            <button type="button" 
+                    onclick="openTransactionModal()" 
+                    class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95 shadow-sm cursor-pointer">
+                <x-icon name="plus" class="w-3.5 h-3.5 stroke-[2.5]" />
+                <span>Tambah</span>
+            </button>
+        </div>
     </div>
 
     <!-- Filter & Search Panel -->

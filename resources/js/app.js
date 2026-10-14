@@ -9,16 +9,18 @@ window.confirmDelete = function (formOrCallback, title = 'Hapus Data?', text = '
         title: title,
         text: text,
         icon: 'warning',
+        background: '#111726',
+        color: '#F8FAFC',
         showCancelButton: true,
         confirmButtonColor: '#e11d48', // rose-600
-        cancelButtonColor: '#64748b', // slate-500
+        cancelButtonColor: '#334155', // slate-700
         confirmButtonText: 'Ya, Hapus',
         cancelButtonText: 'Batal',
         reverseButtons: true,
         customClass: {
-            popup: 'rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 dark:bg-slate-900 dark:text-white',
-            title: 'text-lg font-bold text-slate-900 dark:text-white',
-            htmlContainer: 'text-xs text-slate-500 dark:text-slate-400',
+            popup: 'rounded-3xl shadow-2xl border border-white/10 !bg-[#111726] !text-white',
+            title: 'text-lg font-bold text-white',
+            htmlContainer: 'text-xs text-slate-400',
             confirmButton: 'px-5 py-2.5 rounded-2xl font-bold text-xs shadow-md',
             cancelButton: 'px-5 py-2.5 rounded-2xl font-bold text-xs'
         }
@@ -39,16 +41,18 @@ window.confirmAction = function (formOrCallback, title = 'Konfirmasi', text = 'A
         title: title,
         text: text,
         icon: 'question',
+        background: '#111726',
+        color: '#F8FAFC',
         showCancelButton: true,
         confirmButtonColor: '#059669', // emerald-600
-        cancelButtonColor: '#64748b', // slate-500
+        cancelButtonColor: '#334155', // slate-700
         confirmButtonText: confirmText,
         cancelButtonText: 'Batal',
         reverseButtons: true,
         customClass: {
-            popup: 'rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 dark:bg-slate-900 dark:text-white',
-            title: 'text-lg font-bold text-slate-900 dark:text-white',
-            htmlContainer: 'text-xs text-slate-500 dark:text-slate-400',
+            popup: 'rounded-3xl shadow-2xl border border-white/10 !bg-[#111726] !text-white',
+            title: 'text-lg font-bold text-white',
+            htmlContainer: 'text-xs text-slate-400',
             confirmButton: 'px-5 py-2.5 rounded-2xl font-bold text-xs shadow-md',
             cancelButton: 'px-5 py-2.5 rounded-2xl font-bold text-xs'
         }

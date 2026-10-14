@@ -213,11 +213,25 @@ window.toggleDailyReminder = async function () {
             if (toggle) toggle.checked = false;
             if (window.Swal) {
                 window.Swal.fire({
-                    title: 'Izin Notifikasi Dibutuhkan',
-                    text: 'Untuk menerima pengingat jam 5 sore, mohon izinkan notifikasi di browser atau layar utama HP Anda.',
-                    icon: 'info',
-                    confirmButtonColor: '#059669',
-                    confirmButtonText: 'Mengerti'
+                    background: '#111726',
+                    color: '#F8FAFC',
+                    buttonsStyling: false,
+                    confirmButtonText: 'Mengerti',
+                    customClass: {
+                        popup: '!bg-[#111726] !border !border-white/10 !rounded-3xl !p-6 !shadow-2xl !max-w-sm',
+                        confirmButton: 'w-full py-2.5 px-4 bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] text-slate-950 font-bold rounded-xl text-xs transition-all cursor-pointer'
+                    },
+                    html: `
+                        <div class="flex flex-col items-center text-center">
+                            <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-3 shadow-lg shadow-emerald-500/10">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                                </svg>
+                            </div>
+                            <h3 class="text-base font-extrabold text-white tracking-tight">Izin Notifikasi Dibutuhkan</h3>
+                            <p class="text-xs text-slate-400 mt-2 leading-relaxed">Untuk menerima pengingat harian jam 5 sore, mohon izinkan notifikasi di browser atau layar utama HP Anda.</p>
+                        </div>
+                    `
                 });
             }
             return;

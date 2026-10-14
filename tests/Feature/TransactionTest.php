@@ -5,7 +5,10 @@ namespace Tests\Feature;
 use App\Models\Category;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Services\OcrSpaceService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class TransactionTest extends TestCase
@@ -114,5 +117,52 @@ class TransactionTest extends TestCase
         $this->assertStringNotContainsString('quick_add=1', $targetUrl);
         $this->assertStringNotContainsString('shared_amount=50000', $targetUrl);
         $this->assertEquals('http://localhost/dashboard', $targetUrl);
+    }
+
+    public function test_can_scan_receipt_via_ocr_space(): void
+    {
+        $user = User::factory()->create();
+        Category::firstOrCreate(
+            ['name' => 'Belanja Harian', 'type' => 'expense'],
+            ['icon' => 'shopping-cart', 'color' => '#10b981']
+        );
+
+        Http::fake([
+            'api.ocr.space/*' => Http::response([
+                'ParsedResults' => [
+                    [
+                        'ParsedText' => "INDOMARET POINT\nJL RAYA UTAMA NO 12\nTGL: 14/10/2026 15:30\nROTI TAWAR 15.000\nSUSU UHT 20.000\nTOTAL : 35.000\nTUNAI : 50.000\nKEMBALI : 15.000\nTERIMA KASIH",
+                    ],
+                ],
+                'IsErroredOnProcessing' => false,
+            ], 200),
+        ]);
+
+        $fakeFile = UploadedFile::fake()->image('receipt.jpg', 600, 800);
+
+        $response = $this->actingAs($user)->postJson(route('transactions.scan-receipt'), [
+            'receipt' => $fakeFile,
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'amount' => 35000,
+                'transaction_date' => '2026-10-14',
+                'description' => 'Indomaret',
+                'type' => 'expense',
+            ]);
+    }
+
+    public function test_ocr_space_service_extracts_receipt_text_correctly(): void
+    {
+        $service = new OcrSpaceService;
+
+        $rawIndomaret = "INDOMARET POINT\nTOTAL : Rp 48.500\nTUNAI : 50.000\n14/10/2026";
+        $data = $service->extractReceiptData($rawIndomaret);
+
+        $this->assertEquals(48500, $data['amount']);
+        $this->assertEquals('2026-10-14', $data['transaction_date']);
+        $this->assertEquals('Indomaret', $data['description']);
     }
 }

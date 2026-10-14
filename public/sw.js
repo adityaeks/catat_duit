@@ -32,15 +32,20 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Pass non-GET requests directly to network
+  // Only handle http and https GET requests (ignore chrome-extension://, etc.)
   if (event.request.method !== 'GET') {
+    return;
+  }
+
+  const requestUrl = event.request.url;
+  if (!requestUrl.startsWith('http://') && !requestUrl.startsWith('https://')) {
     return;
   }
 
   event.respondWith(
     fetch(event.request)
       .then((networkResponse) => {
-        // Cache successful responses for static assets/pages
+        // Cache successful responses for same-origin static assets/pages
         if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
           const responseToCache = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => {
@@ -55,7 +60,8 @@ self.addEventListener('fetch', (event) => {
             return cachedResponse;
           }
           // If offline and request is HTML, return root cache
-          if (event.request.headers.get('accept').includes('text/html')) {
+          const acceptHeader = event.request.headers.get('accept');
+          if (acceptHeader && acceptHeader.includes('text/html')) {
             return caches.match('/');
           }
         });

@@ -90,3 +90,50 @@ textarea,
 ::-webkit-scrollbar-thumb:hover {
     background: #334155;
 }
+
+/* SweetAlert2 Obsidian Luxury Theme */
+.swal2-container.swal2-backdrop-show {
+    background: rgba(0, 0, 0, 0.8) !important;
+    backdrop-filter: blur(8px) !important;
+}
+
+.swal2-popup {
+    background: #111726 !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 1.5rem !important;
+    box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9) !important;
+    color: #F8FAFC !important;
+    padding: 1.75rem !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+}
+
+.swal2-title {
+    color: #F8FAFC !important;
+    font-size: 1.15rem !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.025em !important;
+}
+
+.swal2-html-container {
+    color: #94A3B8 !important;
+    margin: 0.75rem 0 0 0 !important;
+    font-size: 0.85rem !important;
+}
+
+.swal2-icon.swal2-success {
+    border-color: #10B981 !important;
+    color: #10B981 !important;
+}
+
+.swal2-icon.swal2-success [class^='swal2-success-line'] {
+    background-color: #10B981 !important;
+}
+
+.swal2-icon.swal2-success .swal2-success-ring {
+    border-color: rgba(16, 185, 129, 0.3) !important;
+}
+
+.swal2-icon.swal2-success .swal2-success-fix,
+.swal2-icon.swal2-success [class^='swal2-success-circular-line'] {
+    background-color: transparent !important;
+}

@@ -17,6 +17,7 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::match(['GET', 'POST'], '/share-receive', [TransactionController::class, 'receiveShare'])->name('transactions.share-receive');
+    Route::post('/transactions/scan-receipt', [TransactionController::class, 'scanReceipt'])->name('transactions.scan-receipt');
     Route::resource('transactions', TransactionController::class)->except(['create', 'show', 'edit']);
     Route::resource('budgets', BudgetController::class)->except(['create', 'show', 'edit']);
     Route::resource('categories', CategoryController::class)->except(['create', 'show', 'edit']);

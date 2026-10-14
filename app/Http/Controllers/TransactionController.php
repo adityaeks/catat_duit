@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Transaction;
+use App\Services\OcrSpaceService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class TransactionController extends Controller
@@ -114,6 +116,32 @@ class TransactionController extends Controller
         $transaction->delete();
 
         return back()->with('success', 'Transaksi berhasil dihapus!');
+    }
+
+    public function scanReceipt(Request $request, OcrSpaceService $ocrService): JsonResponse
+    {
+        $request->validate([
+            'receipt' => 'required|file|mimes:jpeg,png,jpg,webp,pdf|max:5120',
+        ]);
+
+        $result = $ocrService->scanReceipt($request->file('receipt'));
+
+        if (! $result['success']) {
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'] ?? 'Gagal memproses struk dengan OCR.',
+            ], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'amount' => $result['amount'],
+            'transaction_date' => $result['transaction_date'],
+            'description' => $result['description'],
+            'category_id' => $result['category_id'],
+            'type' => $result['type'],
+            'raw_text' => $result['raw_text'] ?? '',
+        ]);
     }
 
     public function receiveShare(Request $request)

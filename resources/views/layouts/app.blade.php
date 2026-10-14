@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id" class="min-h-full">
+<html lang="id" class="dark min-h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -52,6 +52,47 @@
         }
         .dark ::-webkit-scrollbar-thumb {
             background: #334155;
+        }
+
+        /* SweetAlert2 Obsidian Luxury Theme */
+        div:where(.swal2-container).swal2-backdrop-show {
+            background: rgba(0, 0, 0, 0.75) !important;
+            backdrop-filter: blur(8px) !important;
+            -webkit-backdrop-filter: blur(8px) !important;
+        }
+        div:where(.swal2-popup) {
+            background: #111726 !important;
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+            border-radius: 1.5rem !important;
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9) !important;
+            color: #F8FAFC !important;
+            padding: 1.5rem !important;
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+        }
+        div:where(.swal2-title) {
+            color: #F8FAFC !important;
+            font-size: 1.15rem !important;
+            font-weight: 800 !important;
+            letter-spacing: -0.025em !important;
+        }
+        div:where(.swal2-html-container) {
+            color: #94A3B8 !important;
+            margin: 0.5rem 0 0 0 !important;
+            font-size: 0.85rem !important;
+        }
+        div:where(.swal2-icon).swal2-success {
+            border-color: #10B981 !important;
+            color: #10B981 !important;
+        }
+        div:where(.swal2-icon).swal2-success [class^='swal2-success-line'] {
+            background-color: #10B981 !important;
+        }
+        div:where(.swal2-icon).swal2-success .swal2-success-ring {
+            border-color: rgba(16, 185, 129, 0.3) !important;
+        }
+        div:where(.swal2-icon).swal2-success .swal2-success-fix,
+        div:where(.swal2-icon).swal2-success [class^='swal2-success-circular-line'] {
+            background-color: transparent !important;
         }
     </style>
 </head>
@@ -244,11 +285,38 @@
                     </button>
                 </div>
 
-                <!-- Shared Data Auto-Fill Badge -->
-                <div id="sharedDataBadge" class="hidden mt-3 p-3 bg-emerald-500/10 border border-emerald-500/25 rounded-xl text-xs text-emerald-300 flex items-center gap-2 font-medium">
-                    <x-icon name="sparkles" class="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                    <span>Data struk/pembayaran terdeteksi & terisi otomatis</span>
+                <!-- OCR Receipt Scanner Action -->
+                <div class="mt-3">
+                    <input type="file" id="ocrReceiptInput" accept="image/*" capture="environment" class="hidden" onchange="handleReceiptScan(this)">
+                    <button type="button" 
+                            id="scanReceiptBtn"
+                            onclick="document.getElementById('ocrReceiptInput').click()" 
+                            class="w-full py-2.5 px-3.5 surface-inset hover:surface-card border border-emerald-500/25 hover:border-emerald-500/40 rounded-2xl flex items-center justify-between text-xs font-semibold text-emerald-300 transition-all cursor-pointer group">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+                                <x-icon name="camera" class="w-4 h-4" />
+                            </div>
+                            <div class="text-left">
+                                <p class="font-bold text-white text-xs">Pindai / Foto Struk</p>
+                                <p class="text-[10px] text-slate-400 font-normal">Otomatis isi nominal & pos belanja</p>
+                            </div>
+                        </div>
+                        <span class="px-2 py-1 rounded-lg bg-emerald-500/15 text-emerald-300 text-[10px] font-bold border border-emerald-500/25 flex items-center gap-1">
+                            <x-icon name="sparkles" class="w-3 h-3 text-emerald-400" />
+                            <span>Scan</span>
+                        </span>
+                    </button>
                 </div>
+
+                <!-- Shared / OCR Data Auto-Fill Badge -->
+                <div id="sharedDataBadge" class="hidden mt-3 p-3 bg-emerald-500/10 border border-emerald-500/25 rounded-xl text-xs text-emerald-300 flex items-center justify-between gap-2 font-medium">
+                    <div class="flex items-center gap-2">
+                        <x-icon name="sparkles" class="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                        <span id="sharedDataBadgeText">Data struk/pembayaran terdeteksi & terisi otomatis</span>
+                    </div>
+                    <button type="button" id="btnViewOcrText" onclick="toggleOcrRawText()" class="text-[10px] underline text-emerald-400 hover:text-white cursor-pointer hidden">Lihat Teks</button>
+                </div>
+                <div id="ocrRawTextContainer" class="hidden mt-2 p-2.5 surface-inset rounded-xl text-[10px] text-slate-400 max-h-24 overflow-y-auto whitespace-pre-wrap font-mono select-text"></div>
 
                 <form action="{{ route('transactions.store') }}" method="POST" class="mt-4 space-y-4" onsubmit="const btn = this.querySelector('button[type=submit]'); if (btn) { btn.disabled = true; btn.classList.add('opacity-75'); btn.innerHTML = '<span>Menyimpan...</span>'; }">
                     @csrf
@@ -308,7 +376,7 @@
                                name="transaction_date" 
                                value="{{ date('Y-m-d') }}" 
                                required 
-                               class="w-full px-3.5 py-2.5 bg-[#0B0F19] border border-white/[0.08] rounded-xl text-xs font-medium text-slate-200 focus:outline-none focus:border-emerald-500">
+                               class="w-full px-3.5 py-2.5 surface-inset rounded-xl text-xs font-medium text-slate-200 focus:outline-none focus:border-emerald-500 select-text">
                     </div>
 
                     <!-- Catatan / Keterangan -->
@@ -317,7 +385,7 @@
                         <input type="text" 
                                name="description" 
                                placeholder="Contoh: Makan siang, Bensin, dll." 
-                               class="w-full px-3.5 py-2.5 bg-[#0B0F19] border border-white/[0.08] rounded-xl text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-emerald-500">
+                               class="w-full px-3.5 py-2.5 surface-inset rounded-xl text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-emerald-500 select-text">
                     </div>
 
                     <!-- Submit Button -->
@@ -378,6 +446,223 @@
                 return;
             }
             input.value = new Intl.NumberFormat('id-ID').format(value);
+        }
+
+        // OCR Receipt Scanner Handler (Powered by OCR.space)
+        async function handleReceiptScan(input) {
+            if (!input.files || !input.files[0]) return;
+            const file = input.files[0];
+
+            if (file.size > 5 * 1024 * 1024) {
+                if (window.Swal) {
+                    window.Swal.fire({
+                        background: '#111726',
+                        color: '#F8FAFC',
+                        buttonsStyling: false,
+                        customClass: {
+                            popup: '!bg-[#111726] !border !border-white/10 !rounded-3xl !p-6 !shadow-2xl !max-w-sm',
+                            confirmButton: 'w-full py-2.5 px-4 bg-amber-500 hover:bg-amber-400 active:scale-[0.98] text-slate-950 font-bold rounded-xl text-xs transition-all cursor-pointer'
+                        },
+                        html: `
+                            <div class="flex flex-col items-center text-center">
+                                <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-3 shadow-lg shadow-amber-500/10">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                                    </svg>
+                                </div>
+                                <h3 class="text-base font-extrabold text-white tracking-tight">Ukuran Foto Terlalu Besar</h3>
+                                <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">Maksimal ukuran file foto adalah 5MB. Silakan pilih foto dengan resolusi lebih wajar.</p>
+                            </div>
+                        `,
+                        confirmButtonText: 'Mengerti'
+                    });
+                } else {
+                    alert('Ukuran foto maksimal 5MB.');
+                }
+                input.value = '';
+                return;
+            }
+
+            const scanBtn = document.getElementById('scanReceiptBtn');
+            const originalBtnHtml = scanBtn ? scanBtn.innerHTML : '';
+            if (scanBtn) {
+                scanBtn.disabled = true;
+                scanBtn.innerHTML = `
+                    <div class="flex items-center gap-2 text-emerald-400 py-1">
+                        <svg class="animate-spin w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
+                        <span class="text-xs font-bold text-white">Memproses struk dengan OCR.space...</span>
+                    </div>
+                    <span class="text-[10px] text-slate-400">Mohon tunggu</span>
+                `;
+            }
+
+            const formData = new FormData();
+            formData.append('receipt', file);
+            formData.append('_token', '{{ csrf_token() }}');
+
+            try {
+                const response = await fetch('{{ route("transactions.scan-receipt") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || 'Gagal membaca struk.');
+                }
+
+                // 1. Fill Nominal
+                if (data.amount && data.amount > 0) {
+                    const realAmount = document.getElementById('real_amount');
+                    const displayAmount = document.getElementById('display_amount');
+                    if (realAmount && displayAmount) {
+                        realAmount.value = data.amount;
+                        displayAmount.value = new Intl.NumberFormat('id-ID').format(data.amount);
+                    }
+                }
+
+                // 2. Fill Tanggal
+                if (data.transaction_date) {
+                    const dateInput = document.querySelector('input[name="transaction_date"]');
+                    if (dateInput) {
+                        dateInput.value = data.transaction_date;
+                    }
+                }
+
+                // 3. Fill Keterangan
+                if (data.description) {
+                    const descInput = document.querySelector('input[name="description"]');
+                    if (descInput) {
+                        descInput.value = data.description;
+                    }
+                }
+
+                // 4. Fill Tipe & Kategori
+                if (data.type) {
+                    const typeRadio = document.querySelector(`input[name="type"][value="${data.type}"]`);
+                    if (typeRadio) {
+                        typeRadio.checked = true;
+                        toggleTypeCategories(data.type);
+                    }
+                }
+
+                if (data.category_id) {
+                    const catSelect = document.getElementById('modal_category_id');
+                    if (catSelect) {
+                        catSelect.value = data.category_id;
+                    }
+                }
+
+                // 5. Update Status Banner
+                const badge = document.getElementById('sharedDataBadge');
+                const badgeText = document.getElementById('sharedDataBadgeText');
+                const btnView = document.getElementById('btnViewOcrText');
+                const rawBox = document.getElementById('ocrRawTextContainer');
+
+                if (badge && badgeText) {
+                    badge.classList.remove('hidden');
+                    const amountFormatted = data.amount ? 'Rp ' + new Intl.NumberFormat('id-ID').format(data.amount) : 'Nominal belum terdeteksi';
+                    badgeText.innerText = `Struk berhasil dipindai: ${data.description || 'Pembelian'} (${amountFormatted})`;
+                }
+
+                if (data.raw_text && rawBox && btnView) {
+                    rawBox.innerText = data.raw_text;
+                    btnView.classList.remove('hidden');
+                }
+
+                if (window.Swal) {
+                    const formattedAmount = data.amount ? 'Rp ' + new Intl.NumberFormat('id-ID').format(data.amount) : 'Nominal tidak terdeteksi';
+                    const merchantName = (data.description && data.description.trim()) ? data.description : 'Tidak terdeteksi';
+                    const trxDate = (data.transaction_date && data.transaction_date.trim()) ? data.transaction_date : 'Hari ini';
+
+                    window.Swal.fire({
+                        background: '#111726',
+                        color: '#F8FAFC',
+                        showConfirmButton: true,
+                        confirmButtonText: 'Lanjutkan & Tinjau Form',
+                        buttonsStyling: false,
+                        customClass: {
+                            popup: '!bg-[#111726] !border !border-white/10 !rounded-3xl !p-6 !shadow-2xl !max-w-sm',
+                            confirmButton: 'w-full py-3 px-4 bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] text-slate-950 font-bold rounded-xl shadow-lg shadow-emerald-500/20 text-xs transition-all cursor-pointer'
+                        },
+                        html: `
+                            <div class="flex flex-col items-center text-center">
+                                <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-3 shadow-lg shadow-emerald-500/10">
+                                    <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                </div>
+                                <h3 class="text-base font-extrabold text-white tracking-tight">Struk Berhasil Dipindai! 🎉</h3>
+                                <p class="text-xs text-slate-400 mt-1">Data transaksi berhasil diekstrak oleh AI OCR</p>
+                            </div>
+
+                            <div class="mt-4 p-3.5 rounded-2xl bg-[#07090E]/80 border border-white/5 space-y-2.5 text-left text-xs shadow-inner">
+                                <div class="flex items-center justify-between pb-2 border-b border-white/5">
+                                    <span class="text-[11px] font-medium text-slate-400">Total Belanja</span>
+                                    <span class="text-sm font-extrabold text-emerald-400 font-mono tracking-tight">${formattedAmount}</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[11px] font-medium text-slate-400">Merchant / Toko</span>
+                                    <span class="text-xs font-semibold text-slate-200 text-right truncate max-w-[170px]">${merchantName}</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[11px] font-medium text-slate-400">Tanggal</span>
+                                    <span class="text-xs font-medium text-slate-300 text-right">${trxDate}</span>
+                                </div>
+                            </div>
+
+                            <p class="text-[11px] text-slate-400 mt-3.5 text-center leading-relaxed">
+                                Form telah terisi otomatis. Silakan periksa kembali sebelum menyimpan transaksi.
+                            </p>
+                        `
+                    });
+                }
+            } catch (err) {
+                console.error('[OCR Error]', err);
+                if (window.Swal) {
+                    window.Swal.fire({
+                        background: '#111726',
+                        color: '#F8FAFC',
+                        buttonsStyling: false,
+                        confirmButtonText: 'Tutup',
+                        customClass: {
+                            popup: '!bg-[#111726] !border !border-white/10 !rounded-3xl !p-6 !shadow-2xl !max-w-sm',
+                            confirmButton: 'w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 active:scale-[0.98] text-white font-bold rounded-xl text-xs transition-all cursor-pointer'
+                        },
+                        html: `
+                            <div class="flex flex-col items-center text-center">
+                                <div class="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 mb-3 shadow-lg shadow-rose-500/10">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                                    </svg>
+                                </div>
+                                <h3 class="text-base font-extrabold text-white tracking-tight">Pindai Struk Gagal</h3>
+                                <p class="text-xs text-slate-400 mt-2 leading-relaxed">${err.message || 'Terjadi kendala saat menghubungi OCR.space. Pastikan koneksi internet aktif dan struk terbaca jelas.'}</p>
+                            </div>
+                        `
+                    });
+                } else {
+                    alert('Gagal memindai struk: ' + err.message);
+                }
+            } finally {
+                if (scanBtn) {
+                    scanBtn.disabled = false;
+                    scanBtn.innerHTML = originalBtnHtml;
+                }
+                input.value = '';
+            }
+        }
+
+        function toggleOcrRawText() {
+            const rawBox = document.getElementById('ocrRawTextContainer');
+            if (rawBox) {
+                rawBox.classList.toggle('hidden');
+            }
         }
 
         // Auto dismiss flash toast after 4s
