@@ -55,39 +55,43 @@
         }
     </style>
 </head>
-<body class="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 antialiased flex flex-col justify-start items-center select-none">
+<body class="min-h-screen bg-[#07090E] text-slate-100 antialiased flex flex-col justify-start items-center select-none font-sans">
 
-    <!-- Mobile Frame Container (Responsive: App width on mobile, sleek centered card on desktop) -->
-    <div class="w-full max-w-lg min-h-screen bg-white dark:bg-slate-900 border-x border-slate-200/80 dark:border-slate-800/80 shadow-2xl relative flex flex-col flex-1">
+    <!-- App Frame Canvas (Seamless full-bleed on mobile, luxury centered hardware panel on desktop) -->
+    <div class="w-full max-w-md min-h-screen surface-canvas text-slate-100 sm:my-6 sm:rounded-3xl sm:border sm:border-white/[0.08] sm:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.85)] relative flex flex-col flex-1">
         
         <!-- Flash Message Toast -->
         @if(session('success'))
-            <div id="flash-toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-11/12 max-w-sm bg-emerald-600 text-white px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 transition-all duration-300 transform animate-bounce">
-                <x-icon name="check" class="w-5 h-5 flex-shrink-0" />
-                <span class="text-sm font-semibold flex-1">{{ session('success') }}</span>
-                <button type="button" onclick="document.getElementById('flash-toast').remove()" class="text-white/80 hover:text-white">
+            <div id="flash-toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-11/12 max-w-sm surface-elevated text-white px-4 py-3 rounded-2xl shadow-2xl border border-emerald-500/40 flex items-center gap-3 transition-all duration-300">
+                <div class="w-7 h-7 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0">
+                    <x-icon name="check" class="w-4 h-4 stroke-[2.5]" />
+                </div>
+                <span class="text-xs font-semibold flex-1 text-slate-200">{{ session('success') }}</span>
+                <button type="button" onclick="document.getElementById('flash-toast').remove()" class="text-slate-400 hover:text-white p-1">
                     <x-icon name="x" class="w-4 h-4" />
                 </button>
             </div>
         @endif
 
         @if(session('error'))
-            <div id="flash-toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-11/12 max-w-sm bg-rose-600 text-white px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 transition-all duration-300 transform animate-bounce">
-                <x-icon name="alert-circle" class="w-5 h-5 flex-shrink-0" />
-                <span class="text-sm font-semibold flex-1">{{ session('error') }}</span>
-                <button type="button" onclick="document.getElementById('flash-toast').remove()" class="text-white/80 hover:text-white">
+            <div id="flash-toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-11/12 max-w-sm surface-elevated text-white px-4 py-3 rounded-2xl shadow-2xl border border-rose-500/40 flex items-center gap-3 transition-all duration-300">
+                <div class="w-7 h-7 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center flex-shrink-0">
+                    <x-icon name="alert-circle" class="w-4 h-4" />
+                </div>
+                <span class="text-xs font-semibold flex-1 text-slate-200">{{ session('error') }}</span>
+                <button type="button" onclick="document.getElementById('flash-toast').remove()" class="text-slate-400 hover:text-white p-1">
                     <x-icon name="x" class="w-4 h-4" />
                 </button>
             </div>
         @endif
 
         @if($errors->any())
-            <div id="flash-toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-11/12 max-w-sm bg-rose-600 text-white px-4 py-3 rounded-2xl shadow-xl flex flex-col gap-1 transition-all duration-300">
-                <div class="flex items-center gap-2 font-bold text-sm">
+            <div id="flash-toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-11/12 max-w-sm surface-elevated text-white px-4 py-3 rounded-2xl shadow-2xl border border-rose-500/40 flex flex-col gap-1 transition-all duration-300">
+                <div class="flex items-center gap-2 font-bold text-xs text-rose-400">
                     <x-icon name="alert-circle" class="w-4 h-4" />
                     <span>Terjadi kesalahan input:</span>
                 </div>
-                <ul class="text-xs list-disc list-inside space-y-0.5 opacity-90 pl-1">
+                <ul class="text-[11px] list-disc list-inside space-y-0.5 text-slate-300 pl-1">
                     @foreach($errors->all() as $err)
                         <li>{{ $err }}</li>
                     @endforeach
@@ -95,108 +99,109 @@
             </div>
         @endif
 
-        <!-- PWA Install Prompt Banner (Visible only when browser triggers beforeinstallprompt) -->
-        <div id="pwaInstallBanner" class="hidden mx-4 mt-3 p-3.5 bg-emerald-700 bg-linear-to-r from-emerald-700 to-teal-700 text-white rounded-2xl shadow-lg border border-emerald-500/30 flex items-center justify-between gap-3">
+        <!-- PWA Install Prompt Banner -->
+        <div id="pwaInstallBanner" class="hidden mx-4 mt-3 p-3 surface-elevated text-white rounded-2xl flex items-center justify-between gap-3 shadow-lg">
             <div class="flex items-center gap-2.5 overflow-hidden">
-                <div class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
-                    <img src="/icons/icon-192x192.png" alt="Catat Duit" class="w-7 h-7 rounded-lg">
+                <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0">
+                    <x-icon name="wallet" class="w-4 h-4 stroke-[2.2]" />
                 </div>
                 <div class="overflow-hidden">
-                    <p class="text-xs font-bold leading-tight truncate">Pasang Aplikasi Catat Duit</p>
-                    <p class="text-[10px] text-emerald-100 opacity-90 truncate">Akses cepat langsung dari beranda HP</p>
+                    <p class="text-xs font-bold leading-tight truncate text-white">Pasang Catat Duit</p>
+                    <p class="text-[10px] text-slate-400 truncate">Akses cepat & nyaman dari beranda HP</p>
                 </div>
             </div>
             <div class="flex items-center gap-1.5 flex-shrink-0">
-                <button type="button" onclick="triggerPwaInstall()" class="px-3 py-1.5 bg-white text-emerald-800 hover:bg-emerald-50 text-xs font-bold rounded-xl shadow-sm transition-all active:scale-95">
+                <button type="button" onclick="triggerPwaInstall()" class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold rounded-xl transition-all active:scale-95 cursor-pointer">
                     Pasang
                 </button>
-                <button type="button" onclick="document.getElementById('pwaInstallBanner').classList.add('hidden')" class="p-1 text-white/70 hover:text-white rounded-lg">
-                    <x-icon name="x" class="w-4 h-4" />
+                <button type="button" onclick="document.getElementById('pwaInstallBanner').classList.add('hidden')" class="p-1 text-slate-400 hover:text-white rounded-lg cursor-pointer">
+                    <x-icon name="x" class="w-3.5 h-3.5" />
                 </button>
             </div>
         </div>
 
         <!-- Main Content Area -->
-        <main class="flex-1 pb-24">
+        <main class="flex-1 pb-6">
             @yield('content')
         </main>
 
-        <!-- Bottom Navigation Bar (Fixed for Mobile App feel) -->
-        <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-lg bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-t border-slate-200 dark:border-slate-800/80 px-4 py-2 z-40">
-            <div class="flex items-center justify-between relative">
+        <!-- Bottom Navigation Bar (Fintech Refined Dock) -->
+        <nav class="sticky bottom-0 z-40 w-full surface-dock px-3 py-2 sm:rounded-b-3xl">
+            <div class="flex items-center justify-around relative">
                 
                 <!-- Tab Beranda -->
-                <a href="{{ route('dashboard') }}" class="flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all {{ request()->routeIs('dashboard') ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600' }}">
-                    <x-icon name="home" class="w-6 h-6 {{ request()->routeIs('dashboard') ? 'stroke-[2.5]' : '' }}" />
-                    <span class="text-[11px]">Beranda</span>
+                <a href="{{ route('dashboard') }}" class="flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all {{ request()->routeIs('dashboard') ? 'text-emerald-400 font-semibold' : 'text-slate-400 hover:text-slate-200' }}">
+                    <x-icon name="home" class="w-5 h-5 {{ request()->routeIs('dashboard') ? 'stroke-[2.2]' : 'stroke-[1.8]' }}" />
+                    <span class="text-[10px] tracking-tight">Beranda</span>
                 </a>
 
                 <!-- Tab Transaksi -->
-                <a href="{{ route('transactions.index') }}" class="flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all {{ request()->routeIs('transactions.*') ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600' }}">
-                    <x-icon name="receipt" class="w-6 h-6 {{ request()->routeIs('transactions.*') ? 'stroke-[2.5]' : '' }}" />
-                    <span class="text-[11px]">Transaksi</span>
+                <a href="{{ route('transactions.index') }}" class="flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all {{ request()->routeIs('transactions.*') ? 'text-emerald-400 font-semibold' : 'text-slate-400 hover:text-slate-200' }}">
+                    <x-icon name="receipt" class="w-5 h-5 {{ request()->routeIs('transactions.*') ? 'stroke-[2.2]' : 'stroke-[1.8]' }}" />
+                    <span class="text-[10px] tracking-tight">Transaksi</span>
                 </a>
 
-                <!-- Quick Add Center Button -->
-                <div class="relative -top-5">
+                <!-- Quick Add Center Action -->
+                <div class="flex items-center justify-center">
                     <button type="button" 
                             onclick="openTransactionModal()" 
-                            class="w-14 h-14 bg-emerald-600 bg-linear-to-tr from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white rounded-full shadow-lg shadow-emerald-600/30 flex items-center justify-center transition-all transform active:scale-95 focus:outline-none focus:ring-4 focus:ring-emerald-500/20">
-                        <x-icon name="plus" class="w-7 h-7 stroke-[2.5]" />
+                            aria-label="Catat Transaksi Baru"
+                            class="w-11 h-11 bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 rounded-2xl flex items-center justify-center transition-all shadow-md shadow-emerald-500/25 focus:outline-none cursor-pointer">
+                        <x-icon name="plus" class="w-5 h-5 stroke-[2.8]" />
                     </button>
                 </div>
 
                 <!-- Tab Anggaran / Budget -->
-                <a href="{{ route('budgets.index') }}" class="flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all {{ request()->routeIs('budgets.*') ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600' }}">
-                    <x-icon name="target" class="w-6 h-6 {{ request()->routeIs('budgets.*') ? 'stroke-[2.5]' : '' }}" />
-                    <span class="text-[11px]">Anggaran</span>
+                <a href="{{ route('budgets.index') }}" class="flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all {{ request()->routeIs('budgets.*') ? 'text-emerald-400 font-semibold' : 'text-slate-400 hover:text-slate-200' }}">
+                    <x-icon name="target" class="w-5 h-5 {{ request()->routeIs('budgets.*') ? 'stroke-[2.2]' : 'stroke-[1.8]' }}" />
+                    <span class="text-[10px] tracking-tight">Anggaran</span>
                 </a>
 
                 <!-- Tab Kategori -->
-                <a href="{{ route('categories.index') }}" class="flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all {{ request()->routeIs('categories.*') ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-slate-400 dark:text-slate-500 hover:text-slate-600' }}">
-                    <x-icon name="tags" class="w-6 h-6 {{ request()->routeIs('categories.*') ? 'stroke-[2.5]' : '' }}" />
-                    <span class="text-[11px]">Kategori</span>
+                <a href="{{ route('categories.index') }}" class="flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all {{ request()->routeIs('categories.*') ? 'text-emerald-400 font-semibold' : 'text-slate-400 hover:text-slate-200' }}">
+                    <x-icon name="tags" class="w-5 h-5 {{ request()->routeIs('categories.*') ? 'stroke-[2.2]' : 'stroke-[1.8]' }}" />
+                    <span class="text-[10px] tracking-tight">Kategori</span>
                 </a>
 
             </div>
         </nav>
 
         <!-- Global Quick Transaction Modal -->
-        <div id="quickTransactionModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-end justify-center sm:items-center p-0 sm:p-4 transition-all">
-            <div class="bg-white dark:bg-slate-900 w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl p-6 border border-slate-100 dark:border-slate-800 transform transition-all animate-in fade-in duration-200 max-h-[92vh] overflow-y-auto">
+        <div id="quickTransactionModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-end justify-center sm:items-center p-0 sm:p-4 transition-all">
+            <div class="surface-elevated w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl p-5 sm:p-6 border border-white/[0.1] transform transition-all animate-in fade-in duration-200 max-h-[92vh] overflow-y-auto">
                 
-                <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
-                    <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                        <x-icon name="wallet" class="w-5 h-5 text-emerald-600" />
+                <div class="flex items-center justify-between pb-3.5 border-b border-white/[0.08]">
+                    <h3 class="text-base font-bold text-white flex items-center gap-2">
+                        <x-icon name="wallet" class="w-4 h-4 text-emerald-400" />
                         <span>Catat Transaksi</span>
                     </h3>
-                    <button type="button" onclick="closeTransactionModal()" class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800">
-                        <x-icon name="x" class="w-5 h-5" />
+                    <button type="button" onclick="closeTransactionModal()" class="p-1.5 text-slate-400 hover:text-white rounded-xl hover:bg-white/[0.06] transition-all cursor-pointer">
+                        <x-icon name="x" class="w-4 h-4" />
                     </button>
                 </div>
 
                 <!-- Shared Data Auto-Fill Badge -->
-                <div id="sharedDataBadge" class="hidden mt-3 p-3 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 rounded-2xl text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-2 font-semibold">
-                    <x-icon name="sparkles" class="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                    <span>Data resi pembayaran terdeteksi & terisi otomatis!</span>
+                <div id="sharedDataBadge" class="hidden mt-3 p-3 bg-emerald-500/10 border border-emerald-500/25 rounded-xl text-xs text-emerald-300 flex items-center gap-2 font-medium">
+                    <x-icon name="sparkles" class="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                    <span>Data struk/pembayaran terdeteksi & terisi otomatis</span>
                 </div>
 
                 <form action="{{ route('transactions.store') }}" method="POST" class="mt-4 space-y-4" onsubmit="const btn = this.querySelector('button[type=submit]'); if (btn) { btn.disabled = true; btn.classList.add('opacity-75'); btn.innerHTML = '<span>Menyimpan...</span>'; }">
                     @csrf
                     
                     <!-- Segmented Control: Pengeluaran vs Pemasukan -->
-                    <div class="grid grid-cols-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl">
+                    <div class="grid grid-cols-2 p-1 surface-inset rounded-xl">
                         <label class="cursor-pointer">
                             <input type="radio" name="type" value="expense" checked class="peer sr-only" onchange="toggleTypeCategories('expense')">
-                            <div class="py-2.5 text-center text-sm font-semibold rounded-xl text-slate-600 dark:text-slate-400 peer-checked:bg-rose-500 peer-checked:text-white peer-checked:shadow-sm transition-all flex items-center justify-center gap-1.5">
-                                <x-icon name="arrow-down-left" class="w-4 h-4" />
+                            <div class="py-2 text-center text-xs font-semibold rounded-lg text-slate-400 peer-checked:bg-rose-500/20 peer-checked:text-rose-300 peer-checked:border peer-checked:border-rose-500/30 transition-all flex items-center justify-center gap-1.5">
+                                <x-icon name="arrow-down-left" class="w-3.5 h-3.5" />
                                 <span>Pengeluaran</span>
                             </div>
                         </label>
                         <label class="cursor-pointer">
                             <input type="radio" name="type" value="income" class="peer sr-only" onchange="toggleTypeCategories('income')">
-                            <div class="py-2.5 text-center text-sm font-semibold rounded-xl text-slate-600 dark:text-slate-400 peer-checked:bg-emerald-500 peer-checked:text-white peer-checked:shadow-sm transition-all flex items-center justify-center gap-1.5">
-                                <x-icon name="arrow-up-right" class="w-4 h-4" />
+                            <div class="py-2 text-center text-xs font-semibold rounded-lg text-slate-400 peer-checked:bg-emerald-500/20 peer-checked:text-emerald-300 peer-checked:border peer-checked:border-emerald-500/30 transition-all flex items-center justify-center gap-1.5">
+                                <x-icon name="arrow-up-right" class="w-3.5 h-3.5" />
                                 <span>Pemasukan</span>
                             </div>
                         </label>
@@ -204,15 +209,15 @@
 
                     <!-- Nominal Input with Rupiah Autoformat -->
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Nominal (Rp)</label>
+                        <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Nominal Transaksi</label>
                         <div class="relative">
-                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-lg">Rp</span>
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-base">Rp</span>
                             <input type="text" 
                                    id="display_amount" 
                                    inputmode="numeric"
                                    placeholder="0" 
                                    required 
-                                   class="w-full pl-14 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl text-2xl font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                                   class="w-full pl-12 pr-4 py-3 surface-inset rounded-xl text-xl font-bold text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500 num-tabular select-text transition-all"
                                    oninput="formatRupiahInput(this, 'real_amount')">
                             <input type="hidden" name="amount" id="real_amount" required>
                         </div>
@@ -220,40 +225,40 @@
 
                     <!-- Kategori Selector -->
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Kategori</label>
-                        <select name="category_id" id="modal_category_id" required class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Kategori</label>
+                        <select name="category_id" id="modal_category_id" required class="w-full px-3.5 py-2.5 surface-inset rounded-xl text-xs font-medium text-slate-200 focus:outline-none focus:border-emerald-500 select-text">
                             <!-- Populated dynamically / pre-rendered -->
                             @php
                                 $allCats = \App\Models\Category::orderBy('name')->get();
                             @endphp
                             @foreach($allCats as $cat)
-                                <option value="{{ $cat->id }}" data-type="{{ $cat->type }}">{{ $cat->name }} ({{ $cat->type == 'expense' ? 'Pengeluaran' : 'Pemasukan' }})</option>
+                                <option value="{{ $cat->id }}" data-type="{{ $cat->type }}" class="bg-[#111726] text-white">{{ $cat->name }} ({{ $cat->type == 'expense' ? 'Pengeluaran' : 'Pemasukan' }})</option>
                             @endforeach
                         </select>
                     </div>
 
                     <!-- Tanggal Transaksi -->
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Tanggal</label>
+                        <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Tanggal</label>
                         <input type="date" 
                                name="transaction_date" 
                                value="{{ date('Y-m-d') }}" 
                                required 
-                               class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                               class="w-full px-3.5 py-2.5 bg-[#0B0F19] border border-white/[0.08] rounded-xl text-xs font-medium text-slate-200 focus:outline-none focus:border-emerald-500">
                     </div>
 
                     <!-- Catatan / Keterangan -->
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Catatan (Opsional)</label>
+                        <label class="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Keterangan / Catatan (Opsional)</label>
                         <input type="text" 
                                name="description" 
-                               placeholder="Contoh: Makan siang bareng tim, Bensin, dll." 
-                               class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                               placeholder="Contoh: Makan siang, Bensin, dll." 
+                               class="w-full px-3.5 py-2.5 bg-[#0B0F19] border border-white/[0.08] rounded-xl text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-emerald-500">
                     </div>
 
                     <!-- Submit Button -->
-                    <button type="submit" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] text-white font-bold rounded-2xl shadow-lg shadow-emerald-600/20 transition-all text-sm flex items-center justify-center gap-2">
-                        <x-icon name="check" class="w-4 h-4" />
+                    <button type="submit" class="w-full py-3 bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] text-slate-950 font-bold rounded-xl shadow-md shadow-emerald-500/20 transition-all text-xs flex items-center justify-center gap-1.5">
+                        <x-icon name="check" class="w-4 h-4 stroke-[2.5]" />
                         <span>Simpan Transaksi</span>
                     </button>
                 </form>
