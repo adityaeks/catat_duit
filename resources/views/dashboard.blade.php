@@ -32,7 +32,7 @@
     </div>
 
     <!-- Main Balance Card -->
-    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 p-6 text-white shadow-xl shadow-slate-900/10 border border-slate-700/50">
+    <div class="relative overflow-hidden rounded-3xl bg-slate-900 bg-linear-to-br from-slate-900 via-slate-800 to-emerald-950 p-6 text-white shadow-xl shadow-slate-900/10 border border-slate-700/50">
         <!-- Background subtle glow -->
         <div class="absolute -right-8 -top-8 w-40 h-40 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
         
@@ -45,8 +45,34 @@
             Rp {{ number_format($totalBalance, 0, ',', '.') }}
         </div>
 
+        <!-- Highlight Pengeluaran Hari Ini (Glassmorphic Banner) -->
+        <div class="mt-4 p-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center flex-shrink-0 border border-rose-500/30">
+                    <x-icon name="receipt" class="w-4 h-4 stroke-[2.5]" />
+                </div>
+                <div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-[10px] text-slate-300 uppercase tracking-wider font-bold">Habis Hari Ini</span>
+                        @if($todayExpense > 0)
+                            <span class="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse"></span>
+                        @endif
+                    </div>
+                    <p class="text-sm font-extrabold text-white">
+                        Rp {{ number_format($todayExpense, 0, ',', '.') }}
+                    </p>
+                </div>
+            </div>
+            
+            <div class="text-right">
+                <span class="text-[10px] text-slate-300 font-medium px-2 py-0.5 rounded-lg bg-black/20 border border-white/5 inline-block">
+                    {{ $todayExpenseCount }} transaksi
+                </span>
+            </div>
+        </div>
+
         <!-- Month to Date Income & Expense Row -->
-        <div class="mt-6 pt-4 border-t border-slate-700/60 grid grid-cols-2 gap-4">
+        <div class="mt-4 pt-3.5 border-t border-slate-700/60 grid grid-cols-2 gap-4">
             
             <!-- Pemasukan Bulan Ini -->
             <div class="flex items-center gap-2.5">
@@ -147,16 +173,22 @@
                             </div>
                         </div>
 
-                        <!-- Daily recommendation insight -->
+                        <!-- Daily recommendation insight & Today's spend -->
                         @if($budget->days_remaining > 0 && $budget->remaining_amount > 0)
                             <div class="px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 text-[11px] text-slate-600 dark:text-slate-400 flex items-center justify-between">
                                 <span class="flex items-center gap-1">
                                     <x-icon name="sparkles" class="w-3.5 h-3.5 text-amber-500" />
                                     <span>Batas aman harian:</span>
+                                    <span class="font-bold text-slate-900 dark:text-white">
+                                        Rp {{ number_format($budget->daily_remaining_recommendation, 0, ',', '.') }} / hari
+                                    </span>
                                 </span>
-                                <span class="font-bold text-slate-900 dark:text-white">
-                                    Rp {{ number_format($budget->daily_remaining_recommendation, 0, ',', '.') }} / hari
-                                </span>
+                                <div class="text-right">
+                                    <span class="text-slate-400">Hari ini:</span>
+                                    <span class="font-bold {{ $budget->spent_today > $budget->daily_remaining_recommendation ? 'text-rose-600 dark:text-rose-400 font-extrabold' : 'text-slate-800 dark:text-slate-200' }}">
+                                        Rp {{ number_format($budget->spent_today, 0, ',', '.') }}
+                                    </span>
+                                </div>
                             </div>
                         @endif
 
@@ -189,7 +221,7 @@
                 <span>Pengeluaran Kategori (Bulan Ini)</span>
             </h2>
 
-            <div class="grid grid-cols-2 gap-2.5">
+            <div class="grid {{ $expenseCategories->count() === 1 ? 'grid-cols-1' : 'grid-cols-2' }} gap-2.5">
                 @foreach($expenseCategories->take(4) as $cat)
                     <div class="p-3 bg-white dark:bg-slate-800/80 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 flex items-center gap-2.5">
                         <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-white" style="background-color: {{ $cat->color }}">

@@ -24,19 +24,32 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
+        *, *::before, *::after {
+            -webkit-touch-callout: none;
+        }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        input, textarea, [contenteditable="true"] {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
         }
     </style>
 </head>
-<body class="h-full bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 antialiased flex items-center justify-center p-4 selection:bg-emerald-500 selection:text-white">
+<body class="h-full bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 antialiased flex items-center justify-center p-4 select-none">
 
     <div class="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-3xl shadow-2xl p-6 sm:p-8 space-y-6">
         
         <!-- Logo & Title -->
         <div class="text-center space-y-2">
-            <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white mx-auto shadow-lg shadow-emerald-600/30">
+            <div class="w-14 h-14 rounded-2xl bg-emerald-600 bg-linear-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white mx-auto shadow-lg shadow-emerald-600/30">
                 <x-icon name="wallet" class="w-7 h-7 stroke-[2.5]" />
             </div>
             <h1 class="text-2xl font-black tracking-tight text-slate-900 dark:text-white">Catat Duit</h1>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id" class="h-full">
+<html lang="id" class="min-h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -24,9 +24,22 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
+        *, *::before, *::after {
+            -webkit-touch-callout: none;
+        }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        input, textarea, [contenteditable="true"] {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
         }
         /* Custom scrollbar for mobile feel */
         ::-webkit-scrollbar {
@@ -42,10 +55,10 @@
         }
     </style>
 </head>
-<body class="h-full bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 antialiased flex flex-col justify-start items-center selection:bg-emerald-500 selection:text-white">
+<body class="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 antialiased flex flex-col justify-start items-center select-none">
 
     <!-- Mobile Frame Container (Responsive: App width on mobile, sleek centered card on desktop) -->
-    <div class="w-full max-w-lg min-h-screen bg-white dark:bg-slate-900 border-x border-slate-200/80 dark:border-slate-800/80 shadow-2xl relative flex flex-col">
+    <div class="w-full max-w-lg min-h-screen bg-white dark:bg-slate-900 border-x border-slate-200/80 dark:border-slate-800/80 shadow-2xl relative flex flex-col flex-1">
         
         <!-- Flash Message Toast -->
         @if(session('success'))
@@ -83,7 +96,7 @@
         @endif
 
         <!-- PWA Install Prompt Banner (Visible only when browser triggers beforeinstallprompt) -->
-        <div id="pwaInstallBanner" class="hidden mx-4 mt-3 p-3.5 bg-gradient-to-r from-emerald-700 to-teal-700 text-white rounded-2xl shadow-lg border border-emerald-500/30 flex items-center justify-between gap-3">
+        <div id="pwaInstallBanner" class="hidden mx-4 mt-3 p-3.5 bg-emerald-700 bg-linear-to-r from-emerald-700 to-teal-700 text-white rounded-2xl shadow-lg border border-emerald-500/30 flex items-center justify-between gap-3">
             <div class="flex items-center gap-2.5 overflow-hidden">
                 <div class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
                     <img src="/icons/icon-192x192.png" alt="Catat Duit" class="w-7 h-7 rounded-lg">
@@ -128,7 +141,7 @@
                 <div class="relative -top-5">
                     <button type="button" 
                             onclick="openTransactionModal()" 
-                            class="w-14 h-14 bg-gradient-to-tr from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white rounded-full shadow-lg shadow-emerald-600/30 flex items-center justify-center transition-all transform active:scale-95 focus:outline-none focus:ring-4 focus:ring-emerald-500/20">
+                            class="w-14 h-14 bg-emerald-600 bg-linear-to-tr from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white rounded-full shadow-lg shadow-emerald-600/30 flex items-center justify-center transition-all transform active:scale-95 focus:outline-none focus:ring-4 focus:ring-emerald-500/20">
                         <x-icon name="plus" class="w-7 h-7 stroke-[2.5]" />
                     </button>
                 </div>

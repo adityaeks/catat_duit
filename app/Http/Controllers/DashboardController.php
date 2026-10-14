@@ -25,6 +25,14 @@ class DashboardController extends Controller
             ->whereMonth('transaction_date', $today->month)
             ->sum('amount');
 
+        $todayExpense = (float) Transaction::where('type', 'expense')
+            ->whereDate('transaction_date', $today->toDateString())
+            ->sum('amount');
+
+        $todayExpenseCount = Transaction::where('type', 'expense')
+            ->whereDate('transaction_date', $today->toDateString())
+            ->count();
+
         $allBudgets = Budget::with('category')->latest('start_date')->get();
         $activeBudgets = $allBudgets->filter(fn ($b) => $b->is_active);
 
@@ -50,6 +58,8 @@ class DashboardController extends Controller
             'totalBalance',
             'thisMonthIncome',
             'thisMonthExpense',
+            'todayExpense',
+            'todayExpenseCount',
             'activeBudgets',
             'allBudgets',
             'recentTransactions',

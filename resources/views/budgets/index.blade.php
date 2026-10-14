@@ -21,7 +21,7 @@
     </div>
 
     <!-- Active Budgets Summary Card -->
-    <div class="p-4 rounded-3xl bg-gradient-to-br from-emerald-800 to-teal-900 text-white shadow-lg space-y-3">
+    <div class="p-4 rounded-3xl bg-emerald-800 bg-linear-to-br from-emerald-800 to-teal-900 text-white shadow-lg space-y-3">
         <div class="flex items-center justify-between text-xs text-emerald-200 font-semibold">
             <span>Ringkasan Anggaran Berjalan</span>
             <span class="px-2 py-0.5 rounded-full bg-white/10 text-[10px]">{{ $activeBudgets->count() }} Aktif</span>
