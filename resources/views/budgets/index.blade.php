@@ -58,7 +58,7 @@
         </div>
 
         @if($activeBudgets->count() > 0)
-            <div class="space-y-3">
+            <div class="space-y-3 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-4">
                 @foreach($activeBudgets as $budget)
                     @php
                         $percentage = $budget->percentage;
@@ -193,7 +193,7 @@
 
     <!-- Upcoming & Past Budgets Tabs -->
     @if($upcomingBudgets->count() > 0 || $pastBudgets->count() > 0)
-        <div class="pt-2 space-y-4">
+        <div class="pt-2 space-y-4 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-6">
             
             <!-- Upcoming -->
             @if($upcomingBudgets->count() > 0)

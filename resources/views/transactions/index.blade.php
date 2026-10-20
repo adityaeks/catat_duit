@@ -32,14 +32,14 @@
     <div class="surface-card rounded-2xl p-3.5 space-y-3">
         <form method="GET" action="{{ route('transactions.index') }}" class="space-y-3">
             
-            <!-- Search & Type Filter Row -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <!-- Search & Filter Fields (Responsive 1-col on mobile, 4-col on desktop) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
                 <div class="relative">
                     <x-icon name="search" class="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input type="text" 
                            name="search" 
                            value="{{ request('search') }}" 
-                           placeholder="Cari transaksi / catatan..." 
+                           placeholder="Cari transaksi..." 
                            class="w-full pl-8 pr-3 py-2 surface-inset rounded-xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500 select-text">
                 </div>
 
@@ -57,23 +57,21 @@
                         @endforeach
                     </select>
                 </div>
-            </div>
 
-            <!-- Date Range Filters -->
-            <div class="grid grid-cols-2 gap-2 pt-2 border-t border-white/[0.06]">
                 <div>
-                    <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Dari Tanggal</label>
                     <input type="date" 
                            name="start_date" 
                            value="{{ request('start_date') }}" 
-                           class="w-full px-2.5 py-1.5 surface-inset rounded-xl text-xs text-slate-300 focus:outline-none focus:border-emerald-500 select-text">
+                           class="w-full px-2.5 py-2 surface-inset rounded-xl text-xs text-slate-300 focus:outline-none focus:border-emerald-500 select-text"
+                           title="Dari Tanggal">
                 </div>
+
                 <div>
-                    <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Sampai Tanggal</label>
                     <input type="date" 
                            name="end_date" 
                            value="{{ request('end_date') }}" 
-                           class="w-full px-2.5 py-1.5 surface-inset rounded-xl text-xs text-slate-300 focus:outline-none focus:border-emerald-500 select-text">
+                           class="w-full px-2.5 py-2 surface-inset rounded-xl text-xs text-slate-300 focus:outline-none focus:border-emerald-500 select-text"
+                           title="Sampai Tanggal">
                 </div>
             </div>
 

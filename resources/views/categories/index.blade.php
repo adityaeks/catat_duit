@@ -22,6 +22,9 @@
         </button>
     </div>
 
+    <!-- Responsive Grid for Desktop (Side by Side) -->
+    <div class="space-y-5 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-6">
+
     <!-- Expense Categories List -->
     <div class="space-y-3">
         <div class="flex items-center justify-between">
@@ -114,6 +117,8 @@
                 </div>
             @endforeach
         </div>
+    </div>
+
     </div>
 
 </div>

@@ -2,7 +2,7 @@
 <html lang="id" class="dark min-h-full">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>{{ $title ?? 'Catat Duit - Kelola Keuangan & Anggaran' }}</title>
     
     <!-- PWA Meta Tags & Icons -->
@@ -98,76 +98,215 @@
 </head>
 <body class="min-h-screen bg-[#07090E] text-slate-100 antialiased flex flex-col justify-start items-center select-none font-sans">
 
-    <!-- App Frame Canvas (Seamless full-bleed on mobile, luxury centered hardware panel on desktop) -->
-    <div class="w-full max-w-md min-h-screen surface-canvas text-slate-100 sm:my-6 sm:rounded-3xl sm:border sm:border-white/[0.08] sm:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.85)] relative flex flex-col flex-1">
+    <!-- App Frame Canvas (Seamless full-bleed on mobile, luxury spacious dashboard on desktop) -->
+    <div class="w-full max-w-md lg:max-w-7xl min-h-screen lg:min-h-[92vh] surface-canvas text-slate-100 sm:my-6 sm:rounded-3xl sm:border sm:border-white/[0.08] sm:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.85)] relative flex flex-col lg:flex-row flex-1 lg:overflow-hidden">
         
-        <!-- Flash Message Toast -->
-        @if(session('success'))
-            <div id="flash-toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-11/12 max-w-sm surface-elevated text-white px-4 py-3 rounded-2xl shadow-2xl border border-emerald-500/40 flex items-center gap-3 transition-all duration-300">
-                <div class="w-7 h-7 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0">
-                    <x-icon name="check" class="w-4 h-4 stroke-[2.5]" />
+        <!-- Desktop Luxury Sidebar (Hidden on mobile < lg) -->
+        <aside class="hidden lg:flex lg:w-64 xl:w-72 lg:flex-col lg:justify-between lg:border-r lg:border-white/[0.08] lg:bg-[#07090E]/80 lg:backdrop-blur-md p-6 flex-shrink-0 z-30">
+            
+            <div class="space-y-6">
+                <!-- Branding Header -->
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 flex items-center justify-center flex-shrink-0 shadow-lg shadow-emerald-500/10">
+                        <x-icon name="wallet" class="w-5 h-5 stroke-[2.2]" />
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-1.5">
+                            <h1 class="text-base font-extrabold tracking-tight text-white leading-tight">Catat Duit</h1>
+                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">PRO</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 font-medium">{{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }}</p>
+                    </div>
                 </div>
-                <span class="text-xs font-semibold flex-1 text-slate-200">{{ session('success') }}</span>
-                <button type="button" onclick="document.getElementById('flash-toast').remove()" class="text-slate-400 hover:text-white p-1">
-                    <x-icon name="x" class="w-4 h-4" />
-                </button>
-            </div>
-        @endif
 
-        @if(session('error'))
-            <div id="flash-toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-11/12 max-w-sm surface-elevated text-white px-4 py-3 rounded-2xl shadow-2xl border border-rose-500/40 flex items-center gap-3 transition-all duration-300">
-                <div class="w-7 h-7 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center flex-shrink-0">
-                    <x-icon name="alert-circle" class="w-4 h-4" />
+                <!-- Desktop CTA Buttons -->
+                <div class="space-y-2 pt-2">
+                    <button type="button" 
+                            onclick="openTransactionModal()" 
+                            class="w-full py-2.5 px-3.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 transition-all active:scale-[0.98] cursor-pointer">
+                        <x-icon name="plus" class="w-4 h-4 stroke-[2.8]" />
+                        <span>Catat Transaksi</span>
+                    </button>
+                    <button type="button" 
+                            onclick="openTransactionModal(); setTimeout(() => document.getElementById('ocrReceiptInput')?.click(), 150);" 
+                            class="w-full py-2 px-3 surface-card hover:surface-elevated text-emerald-300 hover:text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 border border-emerald-500/20 transition-all cursor-pointer">
+                        <x-icon name="camera" class="w-3.5 h-3.5 text-emerald-400" />
+                        <span>Pindai / Scan Struk</span>
+                    </button>
                 </div>
-                <span class="text-xs font-semibold flex-1 text-slate-200">{{ session('error') }}</span>
-                <button type="button" onclick="document.getElementById('flash-toast').remove()" class="text-slate-400 hover:text-white p-1">
-                    <x-icon name="x" class="w-4 h-4" />
-                </button>
-            </div>
-        @endif
 
-        @if($errors->any())
-            <div id="flash-toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-11/12 max-w-sm surface-elevated text-white px-4 py-3 rounded-2xl shadow-2xl border border-rose-500/40 flex flex-col gap-1 transition-all duration-300">
-                <div class="flex items-center gap-2 font-bold text-xs text-rose-400">
-                    <x-icon name="alert-circle" class="w-4 h-4" />
-                    <span>Terjadi kesalahan input:</span>
-                </div>
-                <ul class="text-[11px] list-disc list-inside space-y-0.5 text-slate-300 pl-1">
-                    @foreach($errors->all() as $err)
-                        <li>{{ $err }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
+                <!-- Navigation Links -->
+                <nav class="space-y-1.5 pt-2">
+                    <a href="{{ route('dashboard') }}" 
+                       class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all {{ request()->routeIs('dashboard') ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 shadow-sm' : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]' }}">
+                        <x-icon name="home" class="w-4 h-4 {{ request()->routeIs('dashboard') ? 'stroke-[2.2]' : 'stroke-[1.8]' }}" />
+                        <span>Beranda</span>
+                    </a>
 
-        <!-- PWA Install Prompt Banner -->
-        <div id="pwaInstallBanner" class="hidden mx-4 mt-3 p-3 surface-elevated text-white rounded-2xl flex items-center justify-between gap-3 shadow-lg">
-            <div class="flex items-center gap-2.5 overflow-hidden">
-                <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0">
-                    <x-icon name="wallet" class="w-4 h-4 stroke-[2.2]" />
-                </div>
-                <div class="overflow-hidden">
-                    <p class="text-xs font-bold leading-tight truncate text-white">Pasang Catat Duit</p>
-                    <p class="text-[10px] text-slate-400 truncate">Akses cepat & nyaman dari beranda HP</p>
+                    <a href="{{ route('transactions.index') }}" 
+                       class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all {{ request()->routeIs('transactions.*') ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 shadow-sm' : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]' }}">
+                        <x-icon name="receipt" class="w-4 h-4 {{ request()->routeIs('transactions.*') ? 'stroke-[2.2]' : 'stroke-[1.8]' }}" />
+                        <span>Transaksi</span>
+                    </a>
+
+                    <a href="{{ route('budgets.index') }}" 
+                       class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all {{ request()->routeIs('budgets.*') ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 shadow-sm' : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]' }}">
+                        <x-icon name="target" class="w-4 h-4 {{ request()->routeIs('budgets.*') ? 'stroke-[2.2]' : 'stroke-[1.8]' }}" />
+                        <span>Anggaran</span>
+                    </a>
+
+                    <a href="{{ route('categories.index') }}" 
+                       class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all {{ request()->routeIs('categories.*') ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 shadow-sm' : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]' }}">
+                        <x-icon name="tags" class="w-4 h-4 {{ request()->routeIs('categories.*') ? 'stroke-[2.2]' : 'stroke-[1.8]' }}" />
+                        <span>Kategori</span>
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Sidebar Footer -->
+            <div class="pt-6 border-t border-white/[0.08] space-y-3">
+                <button type="button" 
+                        onclick="openReminderModal()" 
+                        class="w-full flex items-center justify-between p-2.5 rounded-xl surface-inset hover:surface-card text-xs text-slate-300 hover:text-white transition-all cursor-pointer">
+                    <span class="flex items-center gap-2">
+                        <x-icon name="bell" class="w-4 h-4 text-emerald-400" />
+                        <span>Pengingat 17:00</span>
+                    </span>
+                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                </button>
+
+                <div class="flex items-center justify-between pt-1">
+                    <div class="flex items-center gap-2.5 overflow-hidden">
+                        <div class="w-8 h-8 rounded-xl bg-slate-800 border border-white/[0.08] flex items-center justify-center font-bold text-xs text-slate-300">
+                            {{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}
+                        </div>
+                        <div class="overflow-hidden">
+                            <p class="text-xs font-semibold text-white truncate">{{ auth()->user()->name ?? 'Pengguna' }}</p>
+                            <p class="text-[10px] text-slate-400 truncate">{{ auth()->user()->email ?? '' }}</p>
+                        </div>
+                    </div>
+                    <form action="{{ route('logout') }}" method="POST">
+                        @csrf
+                        <button type="button" 
+                                onclick="confirmAction(this.form, 'Keluar dari Akun?', 'Apakah Anda yakin ingin keluar dari aplikasi?', 'Ya, Keluar')" 
+                                title="Keluar" 
+                                class="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all cursor-pointer">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+                        </button>
+                    </form>
                 </div>
             </div>
-            <div class="flex items-center gap-1.5 flex-shrink-0">
-                <button type="button" onclick="triggerPwaInstall()" class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold rounded-xl transition-all active:scale-95 cursor-pointer">
-                    Pasang
-                </button>
-                <button type="button" onclick="document.getElementById('pwaInstallBanner').classList.add('hidden')" class="p-1 text-slate-400 hover:text-white rounded-lg cursor-pointer">
-                    <x-icon name="x" class="w-3.5 h-3.5" />
-                </button>
+
+        </aside>
+
+        <!-- Main Content Area Wrapper -->
+        <div class="flex-1 flex flex-col min-w-0 lg:overflow-y-auto">
+            
+            <!-- Desktop Top Navigation Bar (Hidden on Mobile) -->
+            <header class="hidden lg:flex items-center justify-between px-8 py-4 border-b border-white/[0.06] bg-[#0B0F19]/40 backdrop-blur-md flex-shrink-0">
+                <div class="flex items-center gap-3">
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                        @if(request()->routeIs('dashboard'))
+                            Dashboard Finansial
+                        @elseif(request()->routeIs('transactions.*'))
+                            Riwayat Transaksi
+                        @elseif(request()->routeIs('budgets.*'))
+                            Manajemen Anggaran
+                        @elseif(request()->routeIs('categories.*'))
+                            Daftar Pos Kategori
+                        @else
+                            Catat Duit
+                        @endif
+                    </span>
+                    <span class="text-white/20">•</span>
+                    <span class="text-xs text-slate-300 font-medium">{{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}</span>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button type="button" 
+                            onclick="openReminderModal()" 
+                            class="p-2 surface-card hover:surface-elevated text-slate-400 hover:text-white rounded-xl transition-all cursor-pointer"
+                            title="Pengingat Jam 5 Sore">
+                        <x-icon name="bell" class="w-4 h-4" />
+                    </button>
+                    <button type="button" 
+                            onclick="openTransactionModal()" 
+                            class="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer">
+                        <x-icon name="plus" class="w-3.5 h-3.5 stroke-[2.8]" />
+                        <span>Catat Transaksi</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Flash Message Toast -->
+            @if(session('success'))
+                <div id="flash-toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-11/12 max-w-sm surface-elevated text-white px-4 py-3 rounded-2xl shadow-2xl border border-emerald-500/40 flex items-center gap-3 transition-all duration-300">
+                    <div class="w-7 h-7 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0">
+                        <x-icon name="check" class="w-4 h-4 stroke-[2.5]" />
+                    </div>
+                    <span class="text-xs font-semibold flex-1 text-slate-200">{{ session('success') }}</span>
+                    <button type="button" onclick="document.getElementById('flash-toast').remove()" class="text-slate-400 hover:text-white p-1">
+                        <x-icon name="x" class="w-4 h-4" />
+                    </button>
+                </div>
+            @endif
+
+            @if(session('error'))
+                <div id="flash-toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-11/12 max-w-sm surface-elevated text-white px-4 py-3 rounded-2xl shadow-2xl border border-rose-500/40 flex items-center gap-3 transition-all duration-300">
+                    <div class="w-7 h-7 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center flex-shrink-0">
+                        <x-icon name="alert-circle" class="w-4 h-4" />
+                    </div>
+                    <span class="text-xs font-semibold flex-1 text-slate-200">{{ session('error') }}</span>
+                    <button type="button" onclick="document.getElementById('flash-toast').remove()" class="text-slate-400 hover:text-white p-1">
+                        <x-icon name="x" class="w-4 h-4" />
+                    </button>
+                </div>
+            @endif
+
+            @if($errors->any())
+                <div id="flash-toast" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-11/12 max-w-sm surface-elevated text-white px-4 py-3 rounded-2xl shadow-2xl border border-rose-500/40 flex flex-col gap-1 transition-all duration-300">
+                    <div class="flex items-center gap-2 font-bold text-xs text-rose-400">
+                        <x-icon name="alert-circle" class="w-4 h-4" />
+                        <span>Terjadi kesalahan input:</span>
+                    </div>
+                    <ul class="text-[11px] list-disc list-inside space-y-0.5 text-slate-300 pl-1">
+                        @foreach($errors->all() as $err)
+                            <li>{{ $err }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            <!-- PWA Install Prompt Banner -->
+            <div id="pwaInstallBanner" class="hidden mx-4 mt-3 p-3 surface-elevated text-white rounded-2xl flex items-center justify-between gap-3 shadow-lg">
+                <div class="flex items-center gap-2.5 overflow-hidden">
+                    <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0">
+                        <x-icon name="wallet" class="w-4 h-4 stroke-[2.2]" />
+                    </div>
+                    <div class="overflow-hidden">
+                        <p class="text-xs font-bold leading-tight truncate text-white">Pasang Catat Duit</p>
+                        <p class="text-[10px] text-slate-400 truncate">Akses cepat & nyaman dari beranda HP</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-1.5 flex-shrink-0">
+                    <button type="button" onclick="triggerPwaInstall()" class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold rounded-xl transition-all active:scale-95 cursor-pointer">
+                        Pasang
+                    </button>
+                    <button type="button" onclick="document.getElementById('pwaInstallBanner').classList.add('hidden')" class="p-1 text-slate-400 hover:text-white rounded-lg cursor-pointer">
+                        <x-icon name="x" class="w-3.5 h-3.5" />
+                    </button>
+                </div>
             </div>
+
+            <!-- Main Content Area -->
+            <main class="flex-1 pb-28 lg:pb-8 lg:p-6">
+                @yield('content')
+            </main>
+
         </div>
 
-        <!-- Main Content Area -->
-        <main class="flex-1 pb-6">
-            @yield('content')
-        </main>
-
-        <!-- Bottom Navigation Bar (Fintech Refined Dock) -->
-        <nav class="sticky bottom-0 z-40 w-full surface-dock px-3 py-2 sm:rounded-b-3xl">
+        <!-- Bottom Navigation Bar (Fintech Refined Fixed Dock - Mobile Only) -->
+        <nav class="fixed bottom-0 left-0 right-0 z-40 mx-auto w-full max-w-md surface-dock px-3 pt-2 pb-3 sm:pb-2 sm:rounded-t-2xl lg:hidden shadow-[0_-10px_30px_-5px_rgba(0,0,0,0.8)] backdrop-blur-xl" style="padding-bottom: max(0.65rem, env(safe-area-inset-bottom));">
             <div class="flex items-center justify-around relative">
                 
                 <!-- Tab Beranda -->

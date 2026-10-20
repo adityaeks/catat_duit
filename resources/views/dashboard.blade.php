@@ -3,8 +3,8 @@
 @section('content')
 <div class="p-4 space-y-5">
 
-    <!-- Top Navigation Header -->
-    <div class="flex items-center justify-between pt-1">
+    <!-- Top Navigation Header (Mobile Only) -->
+    <div class="flex items-center justify-between pt-1 lg:hidden">
         <div class="flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 flex items-center justify-center flex-shrink-0">
                 <x-icon name="wallet" class="w-4 h-4 stroke-[2.2]" />
@@ -39,8 +39,14 @@
         </div>
     </div>
 
-    <!-- Hero Balance & Financial Ledger Card -->
-    <div class="surface-card rounded-3xl p-5 shadow-xl space-y-4">
+    <!-- Responsive Desktop Grid Container -->
+    <div class="lg:grid lg:grid-cols-12 lg:gap-6 lg:space-y-0 space-y-5">
+        
+        <!-- Left Column: Balance & Budgets (7-8 cols on lg) -->
+        <div class="lg:col-span-7 xl:col-span-8 space-y-5">
+
+            <!-- Hero Balance & Financial Ledger Card -->
+            <div class="surface-card rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
         
         <div class="flex items-center justify-between">
             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Saldo Bersih</span>
@@ -101,7 +107,7 @@
         </div>
 
         @if($activeBudgets->count() > 0)
-            <div class="space-y-3">
+            <div class="space-y-3 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-3.5">
                 @foreach($activeBudgets as $budget)
                     @php
                         $percentage = $budget->percentage;
@@ -198,6 +204,10 @@
             </div>
         @endif
     </div>
+        </div>
+
+        <!-- Right Column: Transactions & Categories (4-5 cols on lg) -->
+        <div class="lg:col-span-5 xl:col-span-4 space-y-5">
 
     <!-- Category Breakdown This Month -->
     @if($expenseCategories->count() > 0)
@@ -275,6 +285,10 @@
                 </button>
             </div>
         @endif
+    </div>
+
+        </div>
+
     </div>
 
 </div>
