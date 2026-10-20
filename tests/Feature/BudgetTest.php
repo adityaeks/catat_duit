@@ -154,4 +154,62 @@ class BudgetTest extends TestCase
 
         Carbon::setTestNow();
     }
+
+    public function test_can_top_up_budget_amount_only(): void
+    {
+        $user = User::factory()->create();
+        $budget = Budget::create([
+            'name' => 'Budget Harian Test',
+            'amount' => 400000,
+            'start_date' => now()->startOfMonth()->toDateString(),
+            'end_date' => now()->endOfMonth()->toDateString(),
+        ]);
+
+        $response = $this->actingAs($user)->post(route('budgets.top-up', $budget), [
+            'add_amount' => 50000,
+            'notes' => 'Tambahan jatah harian',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $budget->refresh();
+        $this->assertEquals(450000, (float) $budget->amount);
+        $this->assertStringContainsString('+Rp 50.000', $budget->notes);
+        $this->assertStringContainsString('Tambahan jatah harian', $budget->notes);
+    }
+
+    public function test_can_top_up_budget_and_record_as_income_transaction(): void
+    {
+        $user = User::factory()->create();
+        $incomeCategory = Category::firstOrCreate(
+            ['name' => 'Uang Saku', 'type' => 'income'],
+            ['icon' => 'wallet', 'color' => '#10b981']
+        );
+
+        $budget = Budget::create([
+            'name' => 'Budget Top Up With Income',
+            'amount' => 300000,
+            'start_date' => now()->startOfMonth()->toDateString(),
+            'end_date' => now()->endOfMonth()->toDateString(),
+        ]);
+
+        $response = $this->actingAs($user)->post(route('budgets.top-up', $budget), [
+            'add_amount' => 100000,
+            'notes' => 'Bonus tak terduga',
+            'record_as_income' => 1,
+            'income_category_id' => $incomeCategory->id,
+        ]);
+
+        $response->assertRedirect();
+
+        $budget->refresh();
+        $this->assertEquals(400000, (float) $budget->amount);
+
+        $this->assertDatabaseHas('transactions', [
+            'type' => 'income',
+            'category_id' => $incomeCategory->id,
+            'amount' => 100000,
+        ]);
+    }
 }

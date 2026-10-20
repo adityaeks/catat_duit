@@ -92,8 +92,14 @@
                                 </div>
                             </div>
 
-                            <!-- Actions (Edit/Delete) -->
+                            <!-- Actions (Top-up/Edit/Delete) -->
                             <div class="flex items-center gap-1 flex-shrink-0">
+                                <button type="button" 
+                                        onclick="openTopUpModal({{ $budget->id }}, '{{ addslashes($budget->name) }}', {{ (float) $budget->amount }}, {{ (float) $budget->remaining_amount }}, {{ (int) $budget->days_remaining }}, '{{ addslashes($budget->category?->name ?? 'Semua Pengeluaran') }}')" 
+                                        class="p-1.5 text-emerald-400 hover:text-emerald-300 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 transition-all cursor-pointer"
+                                        title="Tambah Anggaran (+)">
+                                    <x-icon name="plus" class="w-4 h-4 stroke-[2.8]" />
+                                </button>
                                 <button type="button" 
                                         onclick="editBudget({{ json_encode($budget) }})" 
                                         class="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/[0.06] transition-all cursor-pointer"
@@ -126,10 +132,17 @@
 
                         <!-- Amount breakdown -->
                         <div class="flex items-center justify-between text-xs pt-2 border-t border-white/[0.06]">
-                            <div>
+                            <div class="flex items-center gap-1.5 flex-wrap">
                                 <span class="text-slate-400 text-[11px]">Terpakai:</span>
                                 <span class="font-bold text-white num-tabular">Rp {{ number_format($budget->spent_amount, 0, ',', '.') }}</span>
                                 <span class="text-slate-500 text-[10px] num-tabular"> / Rp {{ number_format($budget->amount, 0, ',', '.') }}</span>
+                                <!-- <button type="button" 
+                                        onclick="openTopUpModal({{ $budget->id }}, '{{ addslashes($budget->name) }}', {{ (float) $budget->amount }}, {{ (float) $budget->remaining_amount }}, {{ (int) $budget->days_remaining }}, '{{ addslashes($budget->category?->name ?? 'Semua Pengeluaran') }}')" 
+                                        class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/25 px-1.5 py-0.5 rounded-md transition-all cursor-pointer active:scale-95"
+                                        title="Tambah Nominal Anggaran">
+                                    <x-icon name="plus" class="w-2.5 h-2.5 stroke-[3]" />
+                                    <span>Tambah</span>
+                                </button> -->
                             </div>
                             <div class="text-right">
                                 <span class="text-slate-400 text-[11px]">Sisa:</span>
@@ -149,6 +162,16 @@
                                 <span class="font-bold text-white num-tabular">
                                     Rp {{ number_format($budget->daily_remaining_recommendation, 0, ',', '.') }} <span class="text-[10px] text-slate-400 font-normal">/ hari</span>
                                 </span>
+                            </div>
+                        @endif
+
+                        @if($budget->notes)
+                            <div class="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.05] text-[11px] text-slate-400 space-y-1">
+                                <div class="flex items-center gap-1.5 text-slate-300 font-semibold text-[10px]">
+                                    <x-icon name="edit-3" class="w-3 h-3 text-slate-400" />
+                                    <span>Catatan & Riwayat Penambahan:</span>
+                                </div>
+                                <p class="whitespace-pre-line leading-relaxed text-slate-300 text-[11px] pl-4 font-mono">{{ $budget->notes }}</p>
                             </div>
                         @endif
 
@@ -186,8 +209,14 @@
                                     <p class="text-sm font-bold text-white">{{ $budget->name }}</p>
                                     <p class="text-xs text-slate-400 num-tabular">{{ $budget->start_date->format('d M') }} – {{ $budget->end_date->format('d M Y') }}</p>
                                 </div>
-                                <div class="text-right flex items-center gap-3">
+                                <div class="text-right flex items-center gap-1.5">
                                     <p class="text-xs font-bold text-slate-200 num-tabular">Rp {{ number_format($budget->amount, 0, ',', '.') }}</p>
+                                    <button type="button" 
+                                            onclick="openTopUpModal({{ $budget->id }}, '{{ addslashes($budget->name) }}', {{ (float) $budget->amount }}, {{ (float) $budget->remaining_amount }}, {{ (int) $budget->days_remaining }}, '{{ addslashes($budget->category?->name ?? 'Semua Pengeluaran') }}')" 
+                                            class="p-1.5 text-emerald-400 hover:text-emerald-300 rounded-lg hover:bg-emerald-500/15 border border-emerald-500/20 transition-all cursor-pointer"
+                                            title="Tambah Anggaran (+)">
+                                        <x-icon name="plus" class="w-3.5 h-3.5 stroke-[2.8]" />
+                                    </button>
                                     <form action="{{ route('budgets.destroy', $budget) }}" method="POST">
                                         @csrf
                                         @method('DELETE')
@@ -443,4 +472,7 @@
         }
     }
 </script>
+
+@include('budgets.partials.top-up-modal')
+
 @endsection
