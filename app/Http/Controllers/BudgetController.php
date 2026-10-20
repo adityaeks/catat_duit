@@ -7,6 +7,8 @@ use App\Models\Category;
 use App\Models\Transaction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class BudgetController extends Controller
@@ -16,15 +18,16 @@ class BudgetController extends Controller
      */
     public function index(): View
     {
+        $userId = Auth::id();
         $today = now()->format('Y-m-d');
-        $budgets = Budget::with('category')->orderBy('start_date', 'desc')->get();
+        $budgets = Budget::where('user_id', $userId)->with('category')->orderBy('start_date', 'desc')->get();
 
         $activeBudgets = $budgets->filter(fn ($b) => $b->is_active);
         $upcomingBudgets = $budgets->filter(fn ($b) => $b->start_date->format('Y-m-d') > $today);
         $pastBudgets = $budgets->filter(fn ($b) => $b->end_date->format('Y-m-d') < $today);
 
-        $categories = Category::where('type', 'expense')->orderBy('name')->get();
-        $incomeCategories = Category::where('type', 'income')->orderBy('name')->get();
+        $categories = Category::where('user_id', $userId)->where('type', 'expense')->orderBy('name')->get();
+        $incomeCategories = Category::where('user_id', $userId)->where('type', 'income')->orderBy('name')->get();
 
         // Calculate overall active budgets summary
         $totalActiveBudgetAmount = $activeBudgets->sum('amount');
@@ -48,16 +51,21 @@ class BudgetController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        $userId = Auth::id();
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'category_id' => 'nullable|exists:categories,id',
+            'category_id' => [
+                'nullable',
+                Rule::exists('categories', 'id')->where('user_id', $userId),
+            ],
             'amount' => 'required|numeric|min:1',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'notes' => 'nullable|string|max:500',
         ]);
 
-        Budget::create($validated);
+        Budget::create(array_merge($validated, ['user_id' => $userId]));
 
         return back()->with('success', 'Anggaran berhasil dibuat!');
     }
@@ -67,9 +75,18 @@ class BudgetController extends Controller
      */
     public function update(Request $request, Budget $budget): RedirectResponse
     {
+        if ($budget->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $userId = Auth::id();
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'category_id' => 'nullable|exists:categories,id',
+            'category_id' => [
+                'nullable',
+                Rule::exists('categories', 'id')->where('user_id', $userId),
+            ],
             'amount' => 'required|numeric|min:1',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
@@ -86,11 +103,20 @@ class BudgetController extends Controller
      */
     public function topUp(Request $request, Budget $budget): RedirectResponse
     {
+        if ($budget->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $userId = Auth::id();
+
         $validated = $request->validate([
             'add_amount' => 'required|numeric|min:1',
             'notes' => 'nullable|string|max:255',
             'record_as_income' => 'nullable|boolean',
-            'income_category_id' => 'nullable|exists:categories,id',
+            'income_category_id' => [
+                'nullable',
+                Rule::exists('categories', 'id')->where('user_id', $userId),
+            ],
         ]);
 
         $addAmount = (float) $validated['add_amount'];
@@ -99,11 +125,12 @@ class BudgetController extends Controller
 
         if ($request->boolean('record_as_income')) {
             $incomeCategory = ! empty($validated['income_category_id'])
-                ? Category::where('id', $validated['income_category_id'])->where('type', 'income')->first()
-                : Category::where('type', 'income')->first();
+                ? Category::where('user_id', $userId)->where('id', $validated['income_category_id'])->where('type', 'income')->first()
+                : Category::where('user_id', $userId)->where('type', 'income')->first();
 
             if (! $incomeCategory) {
                 $incomeCategory = Category::create([
+                    'user_id' => $userId,
                     'name' => 'Pemasukan Lain',
                     'type' => 'income',
                     'icon' => 'wallet',
@@ -112,6 +139,7 @@ class BudgetController extends Controller
             }
 
             Transaction::create([
+                'user_id' => $userId,
                 'category_id' => $incomeCategory->id,
                 'type' => 'income',
                 'amount' => $addAmount,
@@ -140,6 +168,10 @@ class BudgetController extends Controller
      */
     public function destroy(Budget $budget): RedirectResponse
     {
+        if ($budget->user_id !== Auth::id()) {
+            abort(403);
+        }
+
         $budget->delete();
 
         return back()->with('success', 'Anggaran berhasil dihapus!');

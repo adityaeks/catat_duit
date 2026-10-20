@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Category;
 use App\Models\Transaction;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class TransactionSeeder extends Seeder
@@ -13,18 +14,24 @@ class TransactionSeeder extends Seeder
      */
     public function run(): void
     {
-        $gajiCat = Category::where('name', 'Gaji Utama')->first();
-        $freelanceCat = Category::where('name', 'Freelance / Bisnis')->first();
-        $makanCat = Category::where('name', 'Makanan & Minuman')->first();
-        $transportCat = Category::where('name', 'Transportasi')->first();
-        $belanjaCat = Category::where('name', 'Belanja Harian')->first();
-        $tagihanCat = Category::where('name', 'Tagihan & Utilitas')->first();
+        $admin = User::first();
+        if (! $admin) {
+            return;
+        }
+
+        $gajiCat = Category::where('user_id', $admin->id)->where('name', 'Gaji Utama')->first();
+        $freelanceCat = Category::where('user_id', $admin->id)->where('name', 'Freelance / Bisnis')->first();
+        $makanCat = Category::where('user_id', $admin->id)->where('name', 'Makanan & Minuman')->first();
+        $transportCat = Category::where('user_id', $admin->id)->where('name', 'Transportasi')->first();
+        $belanjaCat = Category::where('user_id', $admin->id)->where('name', 'Belanja Harian')->first();
+        $tagihanCat = Category::where('user_id', $admin->id)->where('name', 'Tagihan & Utilitas')->first();
 
         $today = now();
 
         $sampleData = [
             // Incomes
             [
+                'user_id' => $admin->id,
                 'category_id' => $gajiCat?->id,
                 'type' => 'income',
                 'amount' => 7500000,
@@ -32,6 +39,7 @@ class TransactionSeeder extends Seeder
                 'description' => 'Gaji bulanan kantor',
             ],
             [
+                'user_id' => $admin->id,
                 'category_id' => $freelanceCat?->id,
                 'type' => 'income',
                 'amount' => 1250000,
@@ -40,6 +48,7 @@ class TransactionSeeder extends Seeder
             ],
             // Expenses
             [
+                'user_id' => $admin->id,
                 'category_id' => $tagihanCat?->id,
                 'type' => 'expense',
                 'amount' => 450000,
@@ -47,6 +56,7 @@ class TransactionSeeder extends Seeder
                 'description' => 'Bayar internet & listrik rumah',
             ],
             [
+                'user_id' => $admin->id,
                 'category_id' => $makanCat?->id,
                 'type' => 'expense',
                 'amount' => 65000,
@@ -54,6 +64,7 @@ class TransactionSeeder extends Seeder
                 'description' => 'Makan siang ayam geprek + es teh',
             ],
             [
+                'user_id' => $admin->id,
                 'category_id' => $transportCat?->id,
                 'type' => 'expense',
                 'amount' => 50000,
@@ -61,6 +72,7 @@ class TransactionSeeder extends Seeder
                 'description' => 'Isi bensin motor Pertamax',
             ],
             [
+                'user_id' => $admin->id,
                 'category_id' => $belanjaCat?->id,
                 'type' => 'expense',
                 'amount' => 175000,
@@ -68,6 +80,7 @@ class TransactionSeeder extends Seeder
                 'description' => 'Belanja mingguan supermarket',
             ],
             [
+                'user_id' => $admin->id,
                 'category_id' => $makanCat?->id,
                 'type' => 'expense',
                 'amount' => 35000,

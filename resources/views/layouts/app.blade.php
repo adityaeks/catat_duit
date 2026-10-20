@@ -177,9 +177,13 @@
 
                 <div class="flex items-center justify-between pt-1">
                     <div class="flex items-center gap-2.5 overflow-hidden">
-                        <div class="w-8 h-8 rounded-xl bg-slate-800 border border-white/[0.08] flex items-center justify-center font-bold text-xs text-slate-300">
-                            {{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}
-                        </div>
+                        @if(auth()->user()?->avatar)
+                            <img src="{{ auth()->user()->avatar }}" alt="{{ auth()->user()->name }}" class="w-8 h-8 rounded-xl object-cover border border-white/[0.08]" referrerpolicy="no-referrer">
+                        @else
+                            <div class="w-8 h-8 rounded-xl bg-slate-800 border border-white/[0.08] flex items-center justify-center font-bold text-xs text-slate-300">
+                                {{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}
+                            </div>
+                        @endif
                         <div class="overflow-hidden">
                             <p class="text-xs font-semibold text-white truncate">{{ auth()->user()->name ?? 'Pengguna' }}</p>
                             <p class="text-[10px] text-slate-400 truncate">{{ auth()->user()->email ?? '' }}</p>
@@ -500,7 +504,7 @@
                         <select name="category_id" id="modal_category_id" required class="w-full px-3.5 py-2.5 surface-inset rounded-xl text-xs font-medium text-slate-200 focus:outline-none focus:border-emerald-500 select-text">
                             <!-- Populated dynamically / pre-rendered -->
                             @php
-                                $allCats = \App\Models\Category::orderBy('name')->get();
+                                $allCats = auth()->check() ? auth()->user()->categories()->orderBy('name')->get() : collect();
                             @endphp
                             @foreach($allCats as $cat)
                                 <option value="{{ $cat->id }}" data-type="{{ $cat->type }}" class="bg-[#111726] text-white">{{ $cat->name }} ({{ $cat->type == 'expense' ? 'Pengeluaran' : 'Pemasukan' }})</option>

@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\Budget;
-use App\Models\Category;
 use App\Models\Transaction;
 use App\Models\User;
 use Carbon\Carbon;
@@ -26,10 +25,12 @@ class BudgetTest extends TestCase
     public function test_can_create_budget_with_custom_date_range(): void
     {
         $user = User::factory()->create();
-        $category = Category::firstOrCreate(
-            ['name' => 'Kuliner Test', 'type' => 'expense'],
-            ['icon' => 'utensils', 'color' => '#f97316']
-        );
+        $category = $user->categories()->create([
+            'name' => 'Kuliner Test',
+            'type' => 'expense',
+            'icon' => 'utensils',
+            'color' => '#f97316',
+        ]);
 
         $response = $this->actingAs($user)->post(route('budgets.store'), [
             'name' => 'Budget Gajian Khusus',
@@ -42,6 +43,7 @@ class BudgetTest extends TestCase
 
         $response->assertRedirect();
         $this->assertDatabaseHas('budgets', [
+            'user_id' => $user->id,
             'name' => 'Budget Gajian Khusus',
             'amount' => 1500000,
         ]);
@@ -54,12 +56,15 @@ class BudgetTest extends TestCase
 
     public function test_budget_calculates_spent_amount_only_within_date_range(): void
     {
-        $category = Category::firstOrCreate(
-            ['name' => 'Bensin Test', 'type' => 'expense'],
-            ['icon' => 'car', 'color' => '#3b82f6']
-        );
+        $user = User::factory()->create();
+        $category = $user->categories()->create([
+            'name' => 'Bensin Test',
+            'type' => 'expense',
+            'icon' => 'car',
+            'color' => '#3b82f6',
+        ]);
 
-        $budget = Budget::create([
+        $budget = $user->budgets()->create([
             'name' => 'Budget Bensin Periode Khusus',
             'category_id' => $category->id,
             'amount' => 500000,
@@ -68,7 +73,7 @@ class BudgetTest extends TestCase
         ]);
 
         // Transaction INSIDE date range
-        Transaction::create([
+        $user->transactions()->create([
             'category_id' => $category->id,
             'type' => 'expense',
             'amount' => 150000,
@@ -77,7 +82,7 @@ class BudgetTest extends TestCase
         ]);
 
         // Transaction OUTSIDE date range (before)
-        Transaction::create([
+        $user->transactions()->create([
             'category_id' => $category->id,
             'type' => 'expense',
             'amount' => 80000,
@@ -86,7 +91,7 @@ class BudgetTest extends TestCase
         ]);
 
         // Transaction OUTSIDE date range (after)
-        Transaction::create([
+        $user->transactions()->create([
             'category_id' => $category->id,
             'type' => 'expense',
             'amount' => 100000,
@@ -104,12 +109,15 @@ class BudgetTest extends TestCase
     {
         Carbon::setTestNow('2026-10-11 10:00:00');
 
-        $category = Category::firstOrCreate(
-            ['name' => 'Makan', 'type' => 'expense'],
-            ['icon' => 'utensils', 'color' => '#f97316']
-        );
+        $user = User::factory()->create();
+        $category = $user->categories()->create([
+            'name' => 'Makan',
+            'type' => 'expense',
+            'icon' => 'utensils',
+            'color' => '#f97316',
+        ]);
 
-        $budget = Budget::create([
+        $budget = $user->budgets()->create([
             'name' => 'Budget Harian Tetap',
             'amount' => 450000,
             'start_date' => '2026-10-10',
@@ -117,7 +125,7 @@ class BudgetTest extends TestCase
         ]);
 
         // Pengeluaran kemarin (10 Oct): Rp 50.000
-        Transaction::create([
+        $user->transactions()->create([
             'category_id' => $category->id,
             'type' => 'expense',
             'amount' => 50000,
@@ -133,7 +141,7 @@ class BudgetTest extends TestCase
 
         // Pengeluaran hari ini jam 1 siang: Rp 20.000
         Carbon::setTestNow('2026-10-11 13:00:00');
-        Transaction::create([
+        $user->transactions()->create([
             'category_id' => $category->id,
             'type' => 'expense',
             'amount' => 20000,
@@ -158,7 +166,7 @@ class BudgetTest extends TestCase
     public function test_can_top_up_budget_amount_only(): void
     {
         $user = User::factory()->create();
-        $budget = Budget::create([
+        $budget = $user->budgets()->create([
             'name' => 'Budget Harian Test',
             'amount' => 400000,
             'start_date' => now()->startOfMonth()->toDateString(),
@@ -182,12 +190,14 @@ class BudgetTest extends TestCase
     public function test_can_top_up_budget_and_record_as_income_transaction(): void
     {
         $user = User::factory()->create();
-        $incomeCategory = Category::firstOrCreate(
-            ['name' => 'Uang Saku', 'type' => 'income'],
-            ['icon' => 'wallet', 'color' => '#10b981']
-        );
+        $incomeCategory = $user->categories()->create([
+            'name' => 'Uang Saku',
+            'type' => 'income',
+            'icon' => 'wallet',
+            'color' => '#10b981',
+        ]);
 
-        $budget = Budget::create([
+        $budget = $user->budgets()->create([
             'name' => 'Budget Top Up With Income',
             'amount' => 300000,
             'start_date' => now()->startOfMonth()->toDateString(),
@@ -207,9 +217,29 @@ class BudgetTest extends TestCase
         $this->assertEquals(400000, (float) $budget->amount);
 
         $this->assertDatabaseHas('transactions', [
+            'user_id' => $user->id,
             'type' => 'income',
             'category_id' => $incomeCategory->id,
             'amount' => 100000,
         ]);
+    }
+
+    public function test_user_cannot_top_up_other_user_budget(): void
+    {
+        $userA = User::factory()->create();
+        $userB = User::factory()->create();
+
+        $budgetA = $userA->budgets()->create([
+            'name' => 'Budget Milik A',
+            'amount' => 500000,
+            'start_date' => now()->startOfMonth()->toDateString(),
+            'end_date' => now()->endOfMonth()->toDateString(),
+        ]);
+
+        $response = $this->actingAs($userB)->post(route('budgets.top-up', $budgetA), [
+            'add_amount' => 50000,
+        ]);
+
+        $response->assertStatus(403);
     }
 }

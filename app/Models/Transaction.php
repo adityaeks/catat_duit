@@ -11,12 +11,21 @@ class Transaction extends Model
      * @var list<string>
      */
     protected $fillable = [
+        'user_id',
         'category_id',
         'type',
         'amount',
         'transaction_date',
         'description',
     ];
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 
     /**
      * @return array<string, string>

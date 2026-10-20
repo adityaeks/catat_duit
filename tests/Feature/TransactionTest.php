@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\Category;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Services\OcrSpaceService;
@@ -27,10 +26,12 @@ class TransactionTest extends TestCase
     public function test_can_record_new_transaction(): void
     {
         $user = User::factory()->create();
-        $category = Category::firstOrCreate(
-            ['name' => 'Belanja Supermarket', 'type' => 'expense'],
-            ['icon' => 'shopping-cart', 'color' => '#8b5cf6']
-        );
+        $category = $user->categories()->create([
+            'name' => 'Belanja Supermarket',
+            'type' => 'expense',
+            'icon' => 'shopping-cart',
+            'color' => '#8b5cf6',
+        ]);
 
         $response = $this->actingAs($user)->post(route('transactions.store'), [
             'type' => 'expense',
@@ -42,6 +43,7 @@ class TransactionTest extends TestCase
 
         $response->assertRedirect();
         $this->assertDatabaseHas('transactions', [
+            'user_id' => $user->id,
             'amount' => 125000,
             'description' => 'Beli sabun dan minyak goreng',
         ]);
@@ -50,12 +52,14 @@ class TransactionTest extends TestCase
     public function test_can_delete_transaction(): void
     {
         $user = User::factory()->create();
-        $category = Category::firstOrCreate(
-            ['name' => 'Kategori Hapus Test', 'type' => 'expense'],
-            ['icon' => 'trash-2', 'color' => '#ef4444']
-        );
+        $category = $user->categories()->create([
+            'name' => 'Kategori Hapus Test',
+            'type' => 'expense',
+            'icon' => 'trash-2',
+            'color' => '#ef4444',
+        ]);
 
-        $tx = Transaction::create([
+        $tx = $user->transactions()->create([
             'category_id' => $category->id,
             'type' => 'expense',
             'amount' => 50000,
@@ -71,13 +75,44 @@ class TransactionTest extends TestCase
         ]);
     }
 
+    public function test_user_cannot_delete_other_user_transaction(): void
+    {
+        $userA = User::factory()->create();
+        $userB = User::factory()->create();
+
+        $catA = $userA->categories()->create([
+            'name' => 'Kategori A',
+            'type' => 'expense',
+            'icon' => 'tags',
+            'color' => '#10b981',
+        ]);
+
+        $txA = $userA->transactions()->create([
+            'category_id' => $catA->id,
+            'type' => 'expense',
+            'amount' => 75000,
+            'transaction_date' => '2026-10-10',
+            'description' => 'Milik User A',
+        ]);
+
+        // User B tries to delete User A's transaction
+        $response = $this->actingAs($userB)->delete(route('transactions.destroy', $txA));
+        $response->assertStatus(403);
+
+        $this->assertDatabaseHas('transactions', [
+            'id' => $txA->id,
+        ]);
+    }
+
     public function test_can_receive_and_parse_shared_receipt(): void
     {
         $user = User::factory()->create();
-        $foodCat = Category::firstOrCreate(
-            ['name' => 'Makanan & Minuman', 'type' => 'expense'],
-            ['icon' => 'utensils', 'color' => '#f97316']
-        );
+        $foodCat = $user->categories()->create([
+            'name' => 'Makanan & Minuman',
+            'type' => 'expense',
+            'icon' => 'utensils',
+            'color' => '#f97316',
+        ]);
 
         $response = $this->actingAs($user)->get(route('transactions.share-receive', [
             'text' => 'Transfer Berhasil Sebesar Rp 45.000 ke Kopi Kenangan via BCA',
@@ -95,10 +130,12 @@ class TransactionTest extends TestCase
     public function test_store_cleans_dirty_shared_query_parameters_on_redirect(): void
     {
         $user = User::factory()->create();
-        $cat = Category::firstOrCreate(
-            ['name' => 'Belanja Harian', 'type' => 'expense'],
-            ['icon' => 'shopping-cart', 'color' => '#10b981']
-        );
+        $cat = $user->categories()->create([
+            'name' => 'Belanja Harian',
+            'type' => 'expense',
+            'icon' => 'shopping-cart',
+            'color' => '#10b981',
+        ]);
 
         $refererWithShareParams = 'http://localhost/dashboard?quick_add=1&shared_amount=50000&shared_type=expense';
 
@@ -122,10 +159,12 @@ class TransactionTest extends TestCase
     public function test_can_scan_receipt_via_ocr_space(): void
     {
         $user = User::factory()->create();
-        Category::firstOrCreate(
-            ['name' => 'Belanja Harian', 'type' => 'expense'],
-            ['icon' => 'shopping-cart', 'color' => '#10b981']
-        );
+        $user->categories()->create([
+            'name' => 'Belanja Harian',
+            'type' => 'expense',
+            'icon' => 'shopping-cart',
+            'color' => '#10b981',
+        ]);
 
         Http::fake([
             'api.ocr.space/*' => Http::response([

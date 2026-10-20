@@ -11,6 +11,7 @@ class Budget extends Model
      * @var list<string>
      */
     protected $fillable = [
+        'user_id',
         'name',
         'category_id',
         'amount',
@@ -32,6 +33,14 @@ class Budget extends Model
     }
 
     /**
+     * @return BelongsTo<User, $this>
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
      * @return BelongsTo<Category, $this>
      */
     public function category()
@@ -47,6 +56,10 @@ class Budget extends Model
         $query = Transaction::where('type', 'expense')
             ->whereDate('transaction_date', '>=', $this->start_date->format('Y-m-d'))
             ->whereDate('transaction_date', '<=', $this->end_date->format('Y-m-d'));
+
+        if ($this->user_id) {
+            $query->where('user_id', $this->user_id);
+        }
 
         if ($this->category_id) {
             $query->where('category_id', $this->category_id);

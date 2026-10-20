@@ -120,7 +120,7 @@
 
             <!-- Optional Checkbox: Record as Income Transaction -->
             @php
-                $incomeCats = \App\Models\Category::where('type', 'income')->orderBy('name')->get();
+                $incomeCats = auth()->check() ? auth()->user()->categories()->where('type', 'income')->orderBy('name')->get() : collect();
             @endphp
             <div class="p-3 surface-inset rounded-2xl space-y-2 border border-white/[0.04]">
                 <label class="flex items-center gap-2.5 cursor-pointer">

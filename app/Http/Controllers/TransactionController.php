@@ -6,13 +6,21 @@ use App\Models\Category;
 use App\Models\Transaction;
 use App\Services\OcrSpaceService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 
 class TransactionController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request): View
     {
-        $query = Transaction::with('category')->latest('transaction_date')->latest('id');
+        $userId = Auth::id();
+        $query = Transaction::where('user_id', $userId)
+            ->with('category')
+            ->latest('transaction_date')
+            ->latest('id');
 
         if ($request->filled('type') && in_array($request->type, ['income', 'expense'])) {
             $query->where('type', $request->type);
@@ -45,7 +53,7 @@ class TransactionController extends Controller
         $netFiltered = $totalFilteredIncome - $totalFilteredExpense;
 
         $transactions = $query->paginate(20)->withQueryString();
-        $categories = Category::orderBy('type')->orderBy('name')->get();
+        $categories = Category::where('user_id', $userId)->orderBy('type')->orderBy('name')->get();
 
         return view('transactions.index', compact(
             'transactions',
@@ -56,17 +64,22 @@ class TransactionController extends Controller
         ));
     }
 
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
+        $userId = Auth::id();
+
         $validated = $request->validate([
             'type' => 'required|in:expense,income',
-            'category_id' => 'required|exists:categories,id',
+            'category_id' => [
+                'required',
+                Rule::exists('categories', 'id')->where('user_id', $userId),
+            ],
             'amount' => 'required|numeric|min:1',
             'transaction_date' => 'required|date',
             'description' => 'nullable|string|max:255',
         ]);
 
-        Transaction::create($validated);
+        Transaction::create(array_merge($validated, ['user_id' => $userId]));
 
         $referer = $request->headers->get('referer');
         if ($referer) {
@@ -96,11 +109,20 @@ class TransactionController extends Controller
         return back()->with('success', 'Transaksi berhasil disimpan!');
     }
 
-    public function update(Request $request, Transaction $transaction)
+    public function update(Request $request, Transaction $transaction): RedirectResponse
     {
+        if ($transaction->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $userId = Auth::id();
+
         $validated = $request->validate([
             'type' => 'required|in:expense,income',
-            'category_id' => 'required|exists:categories,id',
+            'category_id' => [
+                'required',
+                Rule::exists('categories', 'id')->where('user_id', $userId),
+            ],
             'amount' => 'required|numeric|min:1',
             'transaction_date' => 'required|date',
             'description' => 'nullable|string|max:255',
@@ -111,8 +133,12 @@ class TransactionController extends Controller
         return back()->with('success', 'Transaksi berhasil diperbarui!');
     }
 
-    public function destroy(Transaction $transaction)
+    public function destroy(Transaction $transaction): RedirectResponse
     {
+        if ($transaction->user_id !== Auth::id()) {
+            abort(403);
+        }
+
         $transaction->delete();
 
         return back()->with('success', 'Transaksi berhasil dihapus!');
@@ -133,18 +159,29 @@ class TransactionController extends Controller
             ], 422);
         }
 
+        // Remap category_id to user's category if possible
+        $userId = Auth::id();
+        $userCategoryId = null;
+        if (! empty($result['category_id'])) {
+            $cat = Category::find($result['category_id']);
+            if ($cat) {
+                $userCat = Category::where('user_id', $userId)->where('name', $cat->name)->first();
+                $userCategoryId = $userCat?->id;
+            }
+        }
+
         return response()->json([
             'success' => true,
             'amount' => $result['amount'],
             'transaction_date' => $result['transaction_date'],
             'description' => $result['description'],
-            'category_id' => $result['category_id'],
+            'category_id' => $userCategoryId ?? $result['category_id'],
             'type' => $result['type'],
             'raw_text' => $result['raw_text'] ?? '',
         ]);
     }
 
-    public function receiveShare(Request $request)
+    public function receiveShare(Request $request): RedirectResponse
     {
         $title = (string) $request->input('title', '');
         $text = (string) $request->input('text', '');
@@ -166,6 +203,7 @@ class TransactionController extends Controller
 
     private function parseSharedReceipt(string $text): array
     {
+        $userId = Auth::id();
         $amount = 0;
         $type = 'expense';
         $categoryId = null;
@@ -190,7 +228,7 @@ class TransactionController extends Controller
             $type = 'income';
         }
 
-        $allCategories = Category::all();
+        $allCategories = Category::where('user_id', $userId)->get();
 
         $keywordMap = [
             'Makanan & Minuman' => ['makan', 'resto', 'kopi', 'coffee', 'cafe', 'warung', 'kuliner', 'bakso', 'ayam', 'mie', 'gofood', 'grabfood', 'shopeefood', 'f&b'],

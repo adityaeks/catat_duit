@@ -5,46 +5,58 @@ namespace App\Http\Controllers;
 use App\Models\Budget;
 use App\Models\Category;
 use App\Models\Transaction;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(): View
     {
+        $userId = Auth::id();
         $today = now();
-        $totalIncome = (float) Transaction::where('type', 'income')->sum('amount');
-        $totalExpense = (float) Transaction::where('type', 'expense')->sum('amount');
+
+        $userTransactions = Transaction::where('user_id', $userId);
+
+        $totalIncome = (float) (clone $userTransactions)->where('type', 'income')->sum('amount');
+        $totalExpense = (float) (clone $userTransactions)->where('type', 'expense')->sum('amount');
         $totalBalance = $totalIncome - $totalExpense;
 
-        $thisMonthIncome = (float) Transaction::where('type', 'income')
+        $thisMonthIncome = (float) (clone $userTransactions)->where('type', 'income')
             ->whereYear('transaction_date', $today->year)
             ->whereMonth('transaction_date', $today->month)
             ->sum('amount');
 
-        $thisMonthExpense = (float) Transaction::where('type', 'expense')
+        $thisMonthExpense = (float) (clone $userTransactions)->where('type', 'expense')
             ->whereYear('transaction_date', $today->year)
             ->whereMonth('transaction_date', $today->month)
             ->sum('amount');
 
-        $todayExpense = (float) Transaction::where('type', 'expense')
+        $todayExpense = (float) (clone $userTransactions)->where('type', 'expense')
             ->whereDate('transaction_date', $today->toDateString())
             ->sum('amount');
 
-        $todayExpenseCount = Transaction::where('type', 'expense')
+        $todayExpenseCount = (clone $userTransactions)->where('type', 'expense')
             ->whereDate('transaction_date', $today->toDateString())
             ->count();
 
-        $allBudgets = Budget::with('category')->latest('start_date')->get();
+        $allBudgets = Budget::where('user_id', $userId)
+            ->with('category')
+            ->latest('start_date')
+            ->get();
         $activeBudgets = $allBudgets->filter(fn ($b) => $b->is_active);
 
-        $recentTransactions = Transaction::with('category')
+        $recentTransactions = Transaction::where('user_id', $userId)
+            ->with('category')
             ->latest('transaction_date')
             ->latest('id')
             ->take(7)
             ->get();
 
-        $expenseCategories = Category::where('type', 'expense')
-            ->withSum(['transactions' => function ($q) use ($today) {
-                $q->whereYear('transaction_date', $today->year)
+        $expenseCategories = Category::where('user_id', $userId)
+            ->where('type', 'expense')
+            ->withSum(['transactions' => function ($q) use ($today, $userId) {
+                $q->where('user_id', $userId)
+                    ->whereYear('transaction_date', $today->year)
                     ->whereMonth('transaction_date', $today->month);
             }], 'amount')
             ->get()
@@ -52,7 +64,10 @@ class DashboardController extends Controller
             ->sortByDesc('transactions_sum_amount')
             ->values();
 
-        $allCategories = Category::orderBy('type')->orderBy('name')->get();
+        $allCategories = Category::where('user_id', $userId)
+            ->orderBy('type')
+            ->orderBy('name')
+            ->get();
 
         return view('dashboard', compact(
             'totalBalance',

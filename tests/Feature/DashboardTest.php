@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\Category;
 use App\Models\Transaction;
 use App\Models\User;
 use Carbon\Carbon;
@@ -18,13 +17,15 @@ class DashboardTest extends TestCase
         Carbon::setTestNow('2026-10-14 10:00:00');
 
         $user = User::factory()->create();
-        $category = Category::firstOrCreate(
-            ['name' => 'Makan', 'type' => 'expense'],
-            ['icon' => 'utensils', 'color' => '#f97316']
-        );
+        $category = $user->categories()->create([
+            'name' => 'Makan',
+            'type' => 'expense',
+            'icon' => 'utensils',
+            'color' => '#f97316',
+        ]);
 
         // Transaksi kemarin
-        Transaction::create([
+        $user->transactions()->create([
             'category_id' => $category->id,
             'type' => 'expense',
             'amount' => 50000,
@@ -33,7 +34,7 @@ class DashboardTest extends TestCase
         ]);
 
         // Transaksi hari ini
-        Transaction::create([
+        $user->transactions()->create([
             'category_id' => $category->id,
             'type' => 'expense',
             'amount' => 28000,
@@ -69,5 +70,33 @@ class DashboardTest extends TestCase
         $response->assertSee('0 transaksi');
 
         Carbon::setTestNow();
+    }
+
+    public function test_dashboard_isolates_data_between_users(): void
+    {
+        $userA = User::factory()->create();
+        $userB = User::factory()->create();
+
+        $catA = $userA->categories()->create([
+            'name' => 'Gaji A',
+            'type' => 'income',
+            'icon' => 'wallet',
+            'color' => '#10b981',
+        ]);
+
+        $userA->transactions()->create([
+            'category_id' => $catA->id,
+            'type' => 'income',
+            'amount' => 10000000,
+            'transaction_date' => now()->format('Y-m-d'),
+            'description' => 'Gaji User A',
+        ]);
+
+        // User B views dashboard, must have 0 balance and not see User A's transaction
+        $response = $this->actingAs($userB)->get(route('dashboard'));
+
+        $response->assertStatus(200);
+        $response->assertViewHas('totalBalance', 0.0);
+        $response->assertDontSee('Gaji User A');
     }
 }
