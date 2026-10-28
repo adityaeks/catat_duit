@@ -181,8 +181,34 @@ class TransactionController extends Controller
         ]);
     }
 
-    public function receiveShare(Request $request): RedirectResponse
+    public function receiveShare(Request $request, OcrSpaceService $ocrService): RedirectResponse
     {
+        // 1. If an image file was shared via Web Share Target (e.g. SeaBank screenshot/receipt)
+        if ($request->hasFile('receipt')) {
+            $ocrResult = $ocrService->scanReceipt($request->file('receipt'));
+            if ($ocrResult['success']) {
+                $userId = Auth::id();
+                $userCategoryId = null;
+                if (! empty($ocrResult['category_id'])) {
+                    $cat = Category::find($ocrResult['category_id']);
+                    if ($cat) {
+                        $userCat = Category::where('user_id', $userId)->where('name', $cat->name)->first();
+                        $userCategoryId = $userCat?->id;
+                    }
+                }
+
+                return redirect()->route('dashboard', [
+                    'quick_add' => 1,
+                    'shared_amount' => $ocrResult['amount'],
+                    'shared_type' => $ocrResult['type'],
+                    'shared_category_id' => $userCategoryId ?? $ocrResult['category_id'],
+                    'shared_description' => $ocrResult['description'],
+                    'shared_raw' => substr($ocrResult['raw_text'] ?? '', 0, 150),
+                ])->with('success', 'Struk gambar berhasil dipindai dan dimasukkan ke form transaksi!');
+            }
+        }
+
+        // 2. Text-based share (e.g. text copied or shared directly from SeaBank / banking apps)
         $title = (string) $request->input('title', '');
         $text = (string) $request->input('text', '');
         $url = (string) $request->input('url', '');
@@ -208,8 +234,8 @@ class TransactionController extends Controller
         $type = 'expense';
         $categoryId = null;
 
-        // 1. Extract Amount
-        if (preg_match('/(?:Rp|IDR|Sebesar|Jumlah|Total|Nominal)\s*[:.]?\s*([0-9]{1,3}(?:[.,][0-9]{3})*(?:[.,][0-9]{2})?|[0-9]+)/i', $text, $matches)) {
+        // 1. Extract Amount (Handles SeaBank, BCA, Mandiri, BRI, QRIS, e-Wallets)
+        if (preg_match('/(?:Rp|IDR|Sebesar|Jumlah(?:\s*Transfer)?|Total(?:\s*Pembayaran)?|Nominal(?:\s*Transfer)?)\s*[:.]?\s*([0-9]{1,3}(?:[.,][0-9]{3})*(?:[.,][0-9]{2})?|[0-9]+)/i', $text, $matches)) {
             $cleaned = preg_replace('/[^0-9]/', '', $matches[1]);
             if (is_numeric($cleaned) && (int) $cleaned > 0) {
                 $amount = (int) $cleaned;
@@ -259,16 +285,24 @@ class TransactionController extends Controller
             $categoryId = $defaultCat?->id;
         }
 
-        // 3. Clean Description
-        $cleanedDesc = preg_replace('/(berhasil|sukses|transaksi|pembayaran|transfer|sebesar|nominal|total|ke|dari|via|bca|mandiri|bni|bri|gopay|ovo|dana|shopeepay|qris|rp\s*[0-9.,]+)/i', '', $text);
-        $cleanedDesc = trim(preg_replace('/\s+/', ' ', $cleanedDesc));
-        $description = $cleanedDesc ? substr($cleanedDesc, 0, 80) : 'Pembayaran Resi';
+        // 3. Clean Description (Specific to SeaBank & Indonesian Banks)
+        // If "Penerima: ..." exists (common in SeaBank text shares), extract the recipient directly
+        $description = '';
+        if (preg_match('/(?:Penerima|Nama\s*Penerima|Merchant|Ke)\s*[:]\s*([^\n\r,]+)/i', $text, $recMatch)) {
+            $description = trim($recMatch[1]);
+        }
+
+        if (! $description) {
+            $cleanedDesc = preg_replace('/(berhasil|sukses|transaksi|pembayaran|transfer|sebesar|nominal|total|ke|dari|via|seabank|sea\s*bank|bca|mandiri|bni|bri|gopay|ovo|dana|shopeepay|qris|rp\s*[0-9.,]+)/i', '', $text);
+            $cleanedDesc = trim(preg_replace('/\s+/', ' ', $cleanedDesc));
+            $description = $cleanedDesc ? substr($cleanedDesc, 0, 80) : 'Pembayaran Resi';
+        }
 
         return [
             'amount' => $amount,
             'type' => $type,
             'category_id' => $categoryId,
-            'description' => $description,
+            'description' => substr($description, 0, 80),
         ];
     }
 }

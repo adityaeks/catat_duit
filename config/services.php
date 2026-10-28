@@ -46,4 +46,9 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI', env('APP_URL', 'http://localhost:8000').'/auth/google/callback'),
     ],
 
+    'webpush' => [
+        'subject' => env('VAPID_SUBJECT', 'mailto:admin@catatduit.local'),
+        'public_key' => env('VAPID_PUBLIC_KEY', 'BDF6vU2HQM8UhP23Zip8JsFeFTi8iMgWG7BrK5L2EqQXUdrGvmC80LebtudvVMDoaEqRTOe1dnVFTyp3utJm1BM'),
+        'private_key' => env('VAPID_PRIVATE_KEY', '8QgLr6uF4XTaqkyW8OHz9WlLUuf9GAzFFSky1mzKIMU'),
+    ],
 ];

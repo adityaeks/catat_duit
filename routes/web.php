@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\PushNotificationController;
 use App\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Route;
 
@@ -26,5 +27,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/budgets/{budget}/top-up', [BudgetController::class, 'topUp'])->name('budgets.top-up');
     Route::resource('budgets', BudgetController::class)->except(['create', 'show', 'edit']);
     Route::resource('categories', CategoryController::class)->except(['create', 'show', 'edit']);
+
+    // Web Push Notification Routes
+    Route::get('/push/vapid-public-key', [PushNotificationController::class, 'vapidPublicKey'])->name('push.key');
+    Route::post('/push/subscribe', [PushNotificationController::class, 'subscribe'])->name('push.subscribe');
+    Route::post('/push/unsubscribe', [PushNotificationController::class, 'unsubscribe'])->name('push.unsubscribe');
+    Route::post('/push/test', [PushNotificationController::class, 'sendTest'])->name('push.test');
+
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });

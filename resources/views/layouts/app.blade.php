@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>{{ $title ?? 'Catat Duit - Kelola Keuangan & Anggaran' }}</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     
     <!-- PWA Meta Tags & Icons -->
     <link rel="manifest" href="/manifest.json">
@@ -404,6 +405,7 @@
 
                     <!-- Test Button -->
                     <button type="button" 
+                            id="testReminderBtn"
                             onclick="testReminderNotification()" 
                             class="w-full py-3 surface-card hover:surface-elevated active:scale-[0.98] text-slate-200 hover:text-white font-semibold rounded-2xl transition-all text-xs flex items-center justify-center gap-2 cursor-pointer border border-white/[0.08]">
                         <x-icon name="sparkles" class="w-4 h-4 text-emerald-400" />

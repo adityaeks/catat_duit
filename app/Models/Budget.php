@@ -120,6 +120,10 @@ class Budget extends Model
             ->whereDate('transaction_date', '>=', $startDate)
             ->whereDate('transaction_date', '<', $today);
 
+        if ($this->user_id) {
+            $query->where('user_id', $this->user_id);
+        }
+
         if ($this->category_id) {
             $query->where('category_id', $this->category_id);
         }
@@ -140,6 +144,10 @@ class Budget extends Model
 
         $query = Transaction::where('type', 'expense')
             ->whereDate('transaction_date', $today);
+
+        if ($this->user_id) {
+            $query->where('user_id', $this->user_id);
+        }
 
         if ($this->category_id) {
             $query->where('category_id', $this->category_id);

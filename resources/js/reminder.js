@@ -1,5 +1,5 @@
 /**
- * Catat Duit - PWA Daily Reminder System (Jam 17:00)
+ * Catat Duit - PWA & Web Push Daily Reminder System (Jam 17:00)
  */
 
 const STORAGE_KEYS = {
@@ -10,8 +10,35 @@ const STORAGE_KEYS = {
 
 let reminderTimer = null;
 
+/**
+ * Convert URL-safe Base64 string to Uint8Array for VAPID applicationServerKey
+ */
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding)
+        .replace(/-/g, '+')
+        .replace(/_/g, '/');
+
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+}
+
+function getCsrfToken() {
+    const tokenMeta = document.querySelector('meta[name="csrf-token"]');
+    return tokenMeta ? tokenMeta.getAttribute('content') : '';
+}
+
 export function isNotificationSupported() {
     return 'Notification' in window && 'serviceWorker' in navigator;
+}
+
+export function isPushManagerSupported() {
+    return isNotificationSupported() && 'PushManager' in window;
 }
 
 export function getReminderSettings() {
@@ -51,6 +78,114 @@ export async function requestPermission() {
     return permission;
 }
 
+/**
+ * Fetch VAPID public key from backend
+ */
+export async function getVapidPublicKey() {
+    try {
+        const res = await fetch('/push/vapid-public-key', {
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+        if (!res.ok) return null;
+        const data = await res.json();
+        return data.publicKey || null;
+    } catch (e) {
+        console.warn('[Catat Duit] Failed to fetch VAPID key:', e);
+        return null;
+    }
+}
+
+/**
+ * Register this device with the server for background Web Push
+ */
+export async function subscribeDeviceToPush() {
+    if (!isPushManagerSupported()) {
+        console.warn('[Catat Duit] PushManager is not supported in this browser.');
+        return null;
+    }
+
+    try {
+        const registration = await navigator.serviceWorker.ready;
+        if (!registration.pushManager) {
+            return null;
+        }
+
+        const vapidPublicKey = await getVapidPublicKey();
+        if (!vapidPublicKey) {
+            console.warn('[Catat Duit] VAPID public key not configured on server.');
+            return null;
+        }
+
+        const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
+
+        // Check if device already has a subscription
+        let subscription = await registration.pushManager.getSubscription();
+        if (!subscription) {
+            subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: convertedVapidKey
+            });
+        }
+
+        // Send subscription object to Laravel backend
+        const res = await fetch('/push/subscribe', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': getCsrfToken()
+            },
+            body: JSON.stringify(subscription.toJSON())
+        });
+
+        if (res.ok) {
+            console.log('[Catat Duit] Device registered for Server Web Push!');
+            return subscription;
+        }
+    } catch (e) {
+        console.warn('[Catat Duit] Server Web Push registration error:', e);
+    }
+
+    return null;
+}
+
+/**
+ * Unsubscribe device from background Web Push
+ */
+export async function unsubscribeDeviceFromPush() {
+    if (!isPushManagerSupported()) {
+        return;
+    }
+
+    try {
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.getSubscription();
+
+        if (subscription) {
+            await fetch('/push/unsubscribe', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken()
+                },
+                body: JSON.stringify({ endpoint: subscription.endpoint })
+            });
+
+            await subscription.unsubscribe();
+            console.log('[Catat Duit] Device unsubscribed from Web Push.');
+        }
+    } catch (e) {
+        console.warn('[Catat Duit] Web Push unsubscribe error:', e);
+    }
+}
+
+/**
+ * Local fallback notification trigger
+ */
 export async function triggerNotification(title, options = {}) {
     const defaultOptions = {
         icon: '/icons/icon-192x192.png',
@@ -60,7 +195,6 @@ export async function triggerNotification(title, options = {}) {
         ...options
     };
 
-    // 1. Try via Service Worker registration (works when installed PWA / background)
     if ('serviceWorker' in navigator) {
         try {
             const reg = await navigator.serviceWorker.ready;
@@ -73,7 +207,6 @@ export async function triggerNotification(title, options = {}) {
         }
     }
 
-    // 2. Fallback to standard Notification API
     if ('Notification' in window && Notification.permission === 'granted') {
         new Notification(title, defaultOptions);
         return true;
@@ -82,6 +215,9 @@ export async function triggerNotification(title, options = {}) {
     return false;
 }
 
+/**
+ * Send test notification (tries Server Web Push first, falls back to local Service Worker)
+ */
 export async function sendTestNotification() {
     if (!isNotificationSupported()) {
         alert('Perangkat Anda tidak mendukung notifikasi web.');
@@ -96,13 +232,64 @@ export async function sendTestNotification() {
         }
     }
 
+    const testBtn = document.getElementById('testReminderBtn');
+    const originalText = testBtn ? testBtn.innerHTML : '';
+    if (testBtn) {
+        testBtn.disabled = true;
+        testBtn.innerHTML = `
+            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-emerald-400 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>Mengirim notifikasi dari server...</span>
+        `;
+    }
+
+    try {
+        // Ensure device is subscribed on server first
+        const subscription = await subscribeDeviceToPush();
+
+        if (subscription) {
+            const res = await fetch('/push/test', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken()
+                },
+                body: JSON.stringify({ endpoint: subscription.endpoint })
+            });
+
+            const data = await res.json();
+            if (res.ok && data.success) {
+                if (testBtn) {
+                    testBtn.disabled = false;
+                    testBtn.innerHTML = `<span>✅ Notifikasi Terkirim dari Server!</span>`;
+                    setTimeout(() => { testBtn.innerHTML = originalText; }, 2500);
+                }
+                return;
+            }
+        }
+    } catch (e) {
+        console.warn('[Catat Duit] Server test push failed, using local trigger:', e);
+    }
+
+    // Fallback if server push is unavailable or running on non-HTTPS
     await triggerNotification('Catat Duit 💰', {
         body: 'Tes berhasil! Ini contoh pengingat jam 5 sore untuk mencatat pengeluaran Anda.',
         tag: 'catatduit-test-' + Date.now(),
         renotify: true
     });
+
+    if (testBtn) {
+        testBtn.disabled = false;
+        testBtn.innerHTML = originalText;
+    }
 }
 
+/**
+ * In-tab backup check (runs if web is currently open around 17:00)
+ */
 export function checkAndTriggerReminder() {
     const settings = getReminderSettings();
     if (!settings.enabled || Notification.permission !== 'granted') {
@@ -113,7 +300,6 @@ export function checkAndTriggerReminder() {
     const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     const lastDate = localStorage.getItem(STORAGE_KEYS.LAST_DATE);
 
-    // Trigger if current hour >= target hour and not yet triggered today
     if (now.getHours() >= settings.hour && lastDate !== todayStr) {
         localStorage.setItem(STORAGE_KEYS.LAST_DATE, todayStr);
         triggerNotification('Catat Duit 💰', {
@@ -141,14 +327,11 @@ export function scheduleNextReminder() {
     const target = new Date();
     target.setHours(settings.hour, settings.minute, 0, 0);
 
-    // If past target time today, schedule for tomorrow
     if (now.getTime() >= target.getTime()) {
         target.setDate(target.getDate() + 1);
     }
 
     const delayMs = target.getTime() - now.getTime();
-    console.log(`[Catat Duit] Reminder scheduled in ${(delayMs / 1000 / 60).toFixed(1)} mins at ${target.toLocaleTimeString()}`);
-
     if (delayMs > 0 && delayMs < 2147483647) {
         reminderTimer = setTimeout(() => {
             checkAndTriggerReminder();
@@ -176,7 +359,7 @@ export function updateReminderUI() {
     if (statusText) {
         if (settings.permission === 'granted') {
             statusText.innerHTML = settings.enabled 
-                ? '<span class="text-emerald-400 font-semibold flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Aktif setiap 17:00 WIB</span>'
+                ? '<span class="text-emerald-400 font-semibold flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Aktif jam 17:00 (Otomatis Server & HP)</span>'
                 : '<span class="text-slate-400">Notifikasi diizinkan, fitur dinonaktifkan</span>';
         } else if (settings.permission === 'denied') {
             statusText.innerHTML = '<span class="text-rose-400 font-medium">Izin notifikasi diblokir di browser</span>';
@@ -186,7 +369,6 @@ export function updateReminderUI() {
     }
 }
 
-// Global functions attached to window for inline onclicks in Blade
 window.openReminderModal = function () {
     const modal = document.getElementById('reminderModal');
     if (modal) {
@@ -238,14 +420,19 @@ window.toggleDailyReminder = async function () {
         }
     }
 
-    saveReminderSettings(willEnable, '17:00');
-
     if (willEnable) {
-        // Send a quick confirmation notification
+        // Register device subscription to server
+        await subscribeDeviceToPush();
+        saveReminderSettings(true, '17:00');
+
         triggerNotification('Pengingat Aktif ⏰', {
-            body: 'Pengingat jam 5 sore berhasil diaktifkan! Catat Duit akan mengingatkan Anda setiap sore.',
+            body: 'Pengingat jam 5 sore berhasil diaktifkan! Anda akan menerima notifikasi setiap sore langsung di HP.',
             tag: 'catatduit-enabled'
         });
+    } else {
+        // Unregister device subscription from server
+        await unsubscribeDeviceFromPush();
+        saveReminderSettings(false, '17:00');
     }
 };
 
@@ -256,6 +443,12 @@ window.testReminderNotification = function () {
 export function initReminder() {
     updateReminderUI();
     checkAndTriggerReminder();
+
+    // If enabled, refresh device subscription quietly in background
+    const settings = getReminderSettings();
+    if (settings.enabled && Notification.permission === 'granted') {
+        subscribeDeviceToPush();
+    }
 
     // Check periodically every 15 minutes when app is active
     setInterval(() => {

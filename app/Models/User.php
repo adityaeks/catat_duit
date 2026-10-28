@@ -56,6 +56,14 @@ class User extends Authenticatable
     }
 
     /**
+     * @return HasMany<PushSubscription, $this>
+     */
+    public function pushSubscriptions(): HasMany
+    {
+        return $this->hasMany(PushSubscription::class);
+    }
+
+    /**
      * Seed 14 initial default categories for this user if none exist.
      */
     public function createDefaultCategories(): void
