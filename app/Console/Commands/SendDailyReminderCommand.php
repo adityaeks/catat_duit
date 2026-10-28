@@ -32,6 +32,13 @@ class SendDailyReminderCommand extends Command
             return self::SUCCESS;
         }
 
+        if (! $webPushService->isConfigured()) {
+            $this->error('VAPID keys (VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY) belum ada di konfigurasi.');
+            $this->line('Silakan pastikan VAPID_PUBLIC_KEY dan VAPID_PRIVATE_KEY ada di .env server, lalu jalankan "php artisan config:clear".');
+
+            return self::FAILURE;
+        }
+
         $this->info("Sending daily reminder to {$subscriptions->count()} registered device(s)...");
 
         $payload = [
@@ -46,6 +53,12 @@ class SendDailyReminderCommand extends Command
         ];
 
         $stats = $webPushService->sendToSubscriptions($subscriptions, $payload);
+
+        if ($stats['sent'] === 0 && $stats['failed'] === 0 && $webPushService->getLastError()) {
+            $this->error('Gagal mengirim pengingat: '.$webPushService->getLastError());
+
+            return self::FAILURE;
+        }
 
         $this->info("Completed: {$stats['sent']} sent, {$stats['failed']} failed, {$stats['expired']} expired/cleaned.");
 

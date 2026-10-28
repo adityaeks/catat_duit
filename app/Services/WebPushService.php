@@ -26,6 +26,8 @@ class WebPushService
         $this->subject = (string) config('services.webpush.subject', 'mailto:admin@catatduit.local');
     }
 
+    protected ?string $lastError = null;
+
     /**
      * Get the VAPID public key for frontend subscription.
      */
@@ -35,16 +37,33 @@ class WebPushService
     }
 
     /**
-     * Lazy initialize WebPush client.
+     * Check if VAPID keys are configured.
      */
-    protected function getWebPush(): ?WebPush
+    public function isConfigured(): bool
+    {
+        return ! empty($this->publicKey) && ! empty($this->privateKey);
+    }
+
+    /**
+     * Get the last error encountered by WebPushService.
+     */
+    public function getLastError(): ?string
+    {
+        return $this->lastError;
+    }
+
+    /**
+     * Initialize WebPush client.
+     */
+    public function getWebPush(): ?WebPush
     {
         if ($this->webPush !== null) {
             return $this->webPush;
         }
 
         if (empty($this->publicKey) || empty($this->privateKey)) {
-            Log::warning('[WebPush] VAPID keys are missing in configuration.');
+            $this->lastError = 'VAPID keys (VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY) tidak ditemukan di konfigurasi (.env). Pastikan Anda sudah menambahkan kedua kunci tersebut dan jalankan "php artisan config:clear".';
+            Log::warning('[WebPush] '.$this->lastError);
 
             return null;
         }
@@ -63,7 +82,8 @@ class WebPushService
 
             return $this->webPush;
         } catch (\Throwable $e) {
-            Log::error('[WebPush] Failed to initialize WebPush client: '.$e->getMessage());
+            $this->lastError = 'Inisialisasi WebPush gagal: '.$e->getMessage();
+            Log::error('[WebPush] '.$this->lastError);
 
             return null;
         }

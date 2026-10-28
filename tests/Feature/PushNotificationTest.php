@@ -23,6 +23,14 @@ class PushNotificationTest extends TestCase
         $response->assertJsonStructure(['publicKey']);
     }
 
+    public function test_real_web_push_service_initialization(): void
+    {
+        $service = app(WebPushService::class);
+        $this->assertNotEmpty($service->getPublicKey());
+        $this->assertTrue($service->isConfigured());
+        $this->assertNotNull($service->getWebPush());
+    }
+
     public function test_user_can_subscribe_to_push_notifications(): void
     {
         $user = User::factory()->create();
@@ -167,9 +175,14 @@ class PushNotificationTest extends TestCase
         ]);
 
         $mockWebPush = Mockery::mock(WebPushService::class);
+        $mockWebPush->shouldReceive('isConfigured')
+            ->once()
+            ->andReturn(true);
         $mockWebPush->shouldReceive('sendToSubscriptions')
             ->once()
             ->andReturn(['sent' => 1, 'failed' => 0, 'expired' => 0]);
+        $mockWebPush->shouldReceive('getLastError')
+            ->andReturn(null);
 
         $this->app->instance(WebPushService::class, $mockWebPush);
 
@@ -177,5 +190,30 @@ class PushNotificationTest extends TestCase
             ->expectsOutput('Sending daily reminder to 1 registered device(s)...')
             ->expectsOutput('Completed: 1 sent, 0 failed, 0 expired/cleaned.')
             ->assertSuccessful();
+    }
+
+    public function test_daily_reminder_command_fails_when_not_configured(): void
+    {
+        $user = User::factory()->create();
+        $endpoint = 'https://fcm.googleapis.com/fcm/send/fake-endpoint-cmd2';
+
+        PushSubscription::create([
+            'user_id' => $user->id,
+            'endpoint_hash' => hash('sha256', $endpoint),
+            'endpoint' => $endpoint,
+            'public_key' => 'key',
+            'auth_token' => 'auth',
+            'content_encoding' => 'aes128gcm',
+        ]);
+
+        $mockWebPush = Mockery::mock(WebPushService::class);
+        $mockWebPush->shouldReceive('isConfigured')
+            ->once()
+            ->andReturn(false);
+
+        $this->app->instance(WebPushService::class, $mockWebPush);
+
+        $this->artisan('reminder:daily')
+            ->assertFailed();
     }
 }
