@@ -92,13 +92,19 @@
                                 </div>
                             </div>
 
-                            <!-- Actions (Top-up/Edit/Delete) -->
+                            <!-- Actions (Top-up/Deduct/Edit/Delete) -->
                             <div class="flex items-center gap-1 flex-shrink-0">
                                 <button type="button" 
                                         onclick="openTopUpModal({{ $budget->id }}, '{{ addslashes($budget->name) }}', {{ (float) $budget->amount }}, {{ (float) $budget->remaining_amount }}, {{ (int) $budget->days_remaining }}, '{{ addslashes($budget->category?->name ?? 'Semua Pengeluaran') }}')" 
                                         class="p-1.5 text-emerald-400 hover:text-emerald-300 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 transition-all cursor-pointer"
                                         title="Tambah Anggaran (+)">
                                     <x-icon name="plus" class="w-4 h-4 stroke-[2.8]" />
+                                </button>
+                                <button type="button" 
+                                        onclick="openDeductModal({{ $budget->id }}, '{{ addslashes($budget->name) }}', {{ (float) $budget->amount }}, {{ (float) $budget->remaining_amount }}, {{ (int) $budget->days_remaining }}, '{{ addslashes($budget->category?->name ?? 'Semua Pengeluaran') }}')" 
+                                        class="p-1.5 text-rose-400 hover:text-rose-300 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 transition-all cursor-pointer"
+                                        title="Kurangi Anggaran (-)">
+                                    <x-icon name="minus" class="w-4 h-4 stroke-[2.8]" />
                                 </button>
                                 <button type="button" 
                                         onclick="editBudget({{ json_encode($budget) }})" 
@@ -169,7 +175,7 @@
                             <div class="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.05] text-[11px] text-slate-400 space-y-1">
                                 <div class="flex items-center gap-1.5 text-slate-300 font-semibold text-[10px]">
                                     <x-icon name="edit-3" class="w-3 h-3 text-slate-400" />
-                                    <span>Catatan & Riwayat Penambahan:</span>
+                                    <span>Catatan & Riwayat Penyesuaian:</span>
                                 </div>
                                 <p class="whitespace-pre-line leading-relaxed text-slate-300 text-[11px] pl-4 font-mono">{{ $budget->notes }}</p>
                             </div>
@@ -216,6 +222,12 @@
                                             class="p-1.5 text-emerald-400 hover:text-emerald-300 rounded-lg hover:bg-emerald-500/15 border border-emerald-500/20 transition-all cursor-pointer"
                                             title="Tambah Anggaran (+)">
                                         <x-icon name="plus" class="w-3.5 h-3.5 stroke-[2.8]" />
+                                    </button>
+                                    <button type="button" 
+                                            onclick="openDeductModal({{ $budget->id }}, '{{ addslashes($budget->name) }}', {{ (float) $budget->amount }}, {{ (float) $budget->remaining_amount }}, {{ (int) $budget->days_remaining }}, '{{ addslashes($budget->category?->name ?? 'Semua Pengeluaran') }}')" 
+                                            class="p-1.5 text-rose-400 hover:text-rose-300 rounded-lg hover:bg-rose-500/15 border border-rose-500/20 transition-all cursor-pointer"
+                                            title="Kurangi Anggaran (-)">
+                                        <x-icon name="minus" class="w-3.5 h-3.5 stroke-[2.8]" />
                                     </button>
                                     <form action="{{ route('budgets.destroy', $budget) }}" method="POST">
                                         @csrf
@@ -474,5 +486,6 @@
 </script>
 
 @include('budgets.partials.top-up-modal')
+@include('budgets.partials.deduct-modal')
 
 @endsection

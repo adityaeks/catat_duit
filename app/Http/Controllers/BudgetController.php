@@ -164,6 +164,44 @@ class BudgetController extends Controller
     }
 
     /**
+     * Deduct/decrease the budget amount.
+     */
+    public function deduct(Request $request, Budget $budget): RedirectResponse
+    {
+        if ($budget->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'deduct_amount' => 'required|numeric|min:1',
+            'notes' => 'nullable|string|max:255',
+        ]);
+
+        $deductAmount = (float) $validated['deduct_amount'];
+        $oldAmount = (float) $budget->amount;
+
+        if ($deductAmount > $oldAmount) {
+            return back()->withErrors(['deduct_amount' => 'Nominal pengurangan tidak boleh melebihi total kuota anggaran saat ini (Rp '.number_format($oldAmount, 0, ',', '.').').']);
+        }
+
+        $newAmount = max(0, $oldAmount - $deductAmount);
+
+        $dateStr = now()->format('d/m/Y');
+        $formattedDeduct = number_format($deductAmount, 0, ',', '.');
+        $noteSuffix = ! empty($validated['notes']) ? ' ('.$validated['notes'].')' : '';
+        $logLine = "[{$dateStr}] -Rp {$formattedDeduct}{$noteSuffix}";
+
+        $newNotes = $budget->notes ? ($budget->notes."\n".$logLine) : $logLine;
+
+        $budget->update([
+            'amount' => $newAmount,
+            'notes' => $newNotes,
+        ]);
+
+        return back()->with('success', 'Berhasil mengurangi Rp '.$formattedDeduct.' dari anggaran '.$budget->name.'!');
+    }
+
+    /**
      * Remove the specified budget.
      */
     public function destroy(Budget $budget): RedirectResponse

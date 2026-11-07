@@ -242,4 +242,67 @@ class BudgetTest extends TestCase
 
         $response->assertStatus(403);
     }
+
+    public function test_can_deduct_budget_amount(): void
+    {
+        $user = User::factory()->create();
+        $budget = $user->budgets()->create([
+            'name' => 'Budget Harian Test',
+            'amount' => 400000,
+            'start_date' => now()->startOfMonth()->toDateString(),
+            'end_date' => now()->endOfMonth()->toDateString(),
+        ]);
+
+        $response = $this->actingAs($user)->post(route('budgets.deduct', $budget), [
+            'deduct_amount' => 50000,
+            'notes' => 'Koreksi kuota',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $budget->refresh();
+        $this->assertEquals(350000, (float) $budget->amount);
+        $this->assertStringContainsString('-Rp 50.000', $budget->notes);
+        $this->assertStringContainsString('Koreksi kuota', $budget->notes);
+    }
+
+    public function test_cannot_deduct_more_than_current_budget_amount(): void
+    {
+        $user = User::factory()->create();
+        $budget = $user->budgets()->create([
+            'name' => 'Budget Harian Test',
+            'amount' => 400000,
+            'start_date' => now()->startOfMonth()->toDateString(),
+            'end_date' => now()->endOfMonth()->toDateString(),
+        ]);
+
+        $response = $this->actingAs($user)->post(route('budgets.deduct', $budget), [
+            'deduct_amount' => 500000,
+        ]);
+
+        $response->assertSessionHasErrors(['deduct_amount']);
+
+        $budget->refresh();
+        $this->assertEquals(400000, (float) $budget->amount);
+    }
+
+    public function test_user_cannot_deduct_other_user_budget(): void
+    {
+        $userA = User::factory()->create();
+        $userB = User::factory()->create();
+
+        $budgetA = $userA->budgets()->create([
+            'name' => 'Budget Milik A',
+            'amount' => 500000,
+            'start_date' => now()->startOfMonth()->toDateString(),
+            'end_date' => now()->endOfMonth()->toDateString(),
+        ]);
+
+        $response = $this->actingAs($userB)->post(route('budgets.deduct', $budgetA), [
+            'deduct_amount' => 50000,
+        ]);
+
+        $response->assertStatus(403);
+    }
 }

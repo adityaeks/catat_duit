@@ -107,6 +107,9 @@
         </div>
     </div>
 
+    <!-- Expense Chart Section -->
+    @include('transactions.partials.expense-chart')
+
     <!-- Transaction List -->
     <div class="space-y-2.5">
         @if($transactions->count() > 0)

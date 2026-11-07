@@ -204,4 +204,107 @@ class TransactionTest extends TestCase
         $this->assertEquals('2026-10-14', $data['transaction_date']);
         $this->assertEquals('Indomaret', $data['description']);
     }
+
+    public function test_transaction_page_displays_expense_chart_when_expenses_exist(): void
+    {
+        $user = User::factory()->create();
+        $foodCat = $user->categories()->create([
+            'name' => 'Makanan Chart',
+            'type' => 'expense',
+            'icon' => 'utensils',
+            'color' => '#f97316',
+        ]);
+        $transportCat = $user->categories()->create([
+            'name' => 'Transport Chart',
+            'type' => 'expense',
+            'icon' => 'car',
+            'color' => '#3b82f6',
+        ]);
+
+        $user->transactions()->create([
+            'category_id' => $foodCat->id,
+            'type' => 'expense',
+            'amount' => 75000,
+            'transaction_date' => '2026-11-01',
+            'description' => 'Makan siang',
+        ]);
+
+        $user->transactions()->create([
+            'category_id' => $transportCat->id,
+            'type' => 'expense',
+            'amount' => 25000,
+            'transaction_date' => '2026-11-02',
+            'description' => 'Ojol',
+        ]);
+
+        $response = $this->actingAs($user)->get(route('transactions.index'));
+
+        $response->assertStatus(200);
+        $response->assertSee('Grafik Pengeluaran');
+        $response->assertSee('Tren Waktu');
+        $response->assertSee('Kategori');
+        $response->assertSee('Makanan Chart');
+        $response->assertSee('Transport Chart');
+    }
+
+    public function test_transaction_page_chart_respects_filter(): void
+    {
+        $user = User::factory()->create();
+        $cat = $user->categories()->create([
+            'name' => 'Belanja Khusus',
+            'type' => 'expense',
+            'icon' => 'shopping-cart',
+            'color' => '#10b981',
+        ]);
+
+        $user->transactions()->create([
+            'category_id' => $cat->id,
+            'type' => 'expense',
+            'amount' => 50000,
+            'transaction_date' => '2026-11-01',
+            'description' => 'Dalam filter',
+        ]);
+
+        $user->transactions()->create([
+            'category_id' => $cat->id,
+            'type' => 'expense',
+            'amount' => 150000,
+            'transaction_date' => '2026-11-15',
+            'description' => 'Di luar filter',
+        ]);
+
+        $response = $this->actingAs($user)->get(route('transactions.index', [
+            'start_date' => '2026-11-01',
+            'end_date' => '2026-11-05',
+        ]));
+
+        $response->assertStatus(200);
+        $response->assertSee('Grafik Pengeluaran');
+        // Total should be Rp 50.000, not Rp 200.000
+        $response->assertSee('Rp 50.000');
+    }
+
+    public function test_transaction_page_chart_hidden_when_only_income_or_no_expense(): void
+    {
+        $user = User::factory()->create();
+        $incomeCat = $user->categories()->create([
+            'name' => 'Gaji',
+            'type' => 'income',
+            'icon' => 'wallet',
+            'color' => '#10b981',
+        ]);
+
+        $user->transactions()->create([
+            'category_id' => $incomeCat->id,
+            'type' => 'income',
+            'amount' => 5000000,
+            'transaction_date' => '2026-11-01',
+            'description' => 'Gajian bulanan',
+        ]);
+
+        $response = $this->actingAs($user)->get(route('transactions.index', ['type' => 'income']));
+
+        $response->assertStatus(200);
+        $response->assertDontSee('Grafik Pengeluaran');
+    }
 }

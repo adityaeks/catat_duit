@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Transaction;
 use App\Services\OcrSpaceService;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,9 +19,7 @@ class TransactionController extends Controller
     {
         $userId = Auth::id();
         $query = Transaction::where('user_id', $userId)
-            ->with('category')
-            ->latest('transaction_date')
-            ->latest('id');
+            ->with('category');
 
         if ($request->filled('type') && in_array($request->type, ['income', 'expense'])) {
             $query->where('type', $request->type);
@@ -52,7 +51,134 @@ class TransactionController extends Controller
         $totalFilteredExpense = (clone $query)->where('type', 'expense')->sum('amount');
         $netFiltered = $totalFilteredIncome - $totalFilteredExpense;
 
-        $transactions = $query->paginate(20)->withQueryString();
+        // Prepare Expense Chart Data
+        $expenseChartDaily = [];
+        $expenseChartCategories = [];
+        $expenseChartMaxDaily = 0;
+        $expenseChartPeakDay = null;
+        $expenseChartDailyAvg = 0;
+
+        if ($totalFilteredExpense > 0) {
+            $expenseBaseQuery = (clone $query)->where('type', 'expense')->reorder();
+
+            // 1. Category Breakdown
+            $categorySums = (clone $expenseBaseQuery)
+                ->selectRaw('category_id, SUM(amount) as total')
+                ->groupBy('category_id')
+                ->orderByDesc('total')
+                ->with('category')
+                ->get();
+
+            $circumference = 2 * M_PI * 58;
+            $currentOffset = 0;
+            $catCount = $categorySums->count();
+
+            foreach ($categorySums as $catSum) {
+                $pct = $totalFilteredExpense > 0 ? ($catSum->total / $totalFilteredExpense) * 100 : 0;
+                $strokeLength = ($pct / 100) * $circumference;
+                $gap = ($catCount > 1 && $strokeLength > 3) ? 2.5 : 0;
+                $dashLength = max(0.5, $strokeLength - $gap);
+                $dashGap = $circumference - $dashLength;
+
+                $expenseChartCategories[] = [
+                    'id' => $catSum->category_id,
+                    'name' => $catSum->category->name ?? 'Lainnya',
+                    'color' => $catSum->category->color ?? '#f43f5e',
+                    'icon' => $catSum->category->icon ?? 'tag',
+                    'total' => (float) $catSum->total,
+                    'percentage' => round($pct, 1),
+                    'stroke_dasharray' => sprintf('%.2f %.2f', $dashLength, $dashGap),
+                    'stroke_dashoffset' => sprintf('%.2f', -$currentOffset),
+                ];
+
+                $currentOffset += $strokeLength;
+            }
+
+            // 2. Daily Trend
+            if ($request->filled('start_date') || $request->filled('end_date')) {
+                $firstExpenseDate = (clone $expenseBaseQuery)->min('transaction_date');
+                $lastExpenseDate = (clone $expenseBaseQuery)->max('transaction_date');
+
+                $startStr = $request->start_date ?: ($firstExpenseDate ? Carbon::parse($firstExpenseDate)->toDateString() : now()->toDateString());
+                $endStr = $request->end_date ?: ($lastExpenseDate ? Carbon::parse($lastExpenseDate)->toDateString() : now()->toDateString());
+
+                $startDateObj = Carbon::parse($startStr)->startOfDay();
+                $endDateObj = Carbon::parse($endStr)->startOfDay();
+
+                if ($startDateObj->gt($endDateObj)) {
+                    [$startDateObj, $endDateObj] = [$endDateObj, $startDateObj];
+                }
+
+                $diffDays = $startDateObj->diffInDays($endDateObj);
+
+                $dailyRaw = (clone $expenseBaseQuery)
+                    ->selectRaw('DATE(transaction_date) as t_date, SUM(amount) as total')
+                    ->groupBy('t_date')
+                    ->pluck('total', 't_date')
+                    ->toArray();
+
+                if ($diffDays <= 31) {
+                    $curr = $startDateObj->copy();
+                    while ($curr->lte($endDateObj)) {
+                        $dateStr = $curr->format('Y-m-d');
+                        $amount = (float) ($dailyRaw[$dateStr] ?? 0);
+                        $expenseChartDaily[] = [
+                            'date' => $dateStr,
+                            'short_label' => $curr->translatedFormat('d M'),
+                            'day_name' => $curr->translatedFormat('D'),
+                            'amount' => $amount,
+                        ];
+                        $curr->addDay();
+                    }
+                } else {
+                    foreach ($dailyRaw as $dateStr => $amount) {
+                        $dObj = Carbon::parse($dateStr);
+                        $expenseChartDaily[] = [
+                            'date' => $dateStr,
+                            'short_label' => $dObj->translatedFormat('d M'),
+                            'day_name' => $dObj->translatedFormat('D'),
+                            'amount' => (float) $amount,
+                        ];
+                    }
+                    usort($expenseChartDaily, fn ($a, $b) => strcmp($a['date'], $b['date']));
+                }
+            } else {
+                $latestActiveDates = (clone $expenseBaseQuery)
+                    ->selectRaw('DATE(transaction_date) as t_date, SUM(amount) as total')
+                    ->groupBy('t_date')
+                    ->orderByDesc('t_date')
+                    ->take(14)
+                    ->get()
+                    ->sortBy('t_date')
+                    ->values();
+
+                foreach ($latestActiveDates as $row) {
+                    $dObj = Carbon::parse($row->t_date);
+                    $expenseChartDaily[] = [
+                        'date' => $row->t_date,
+                        'short_label' => $dObj->translatedFormat('d M'),
+                        'day_name' => $dObj->translatedFormat('D'),
+                        'amount' => (float) $row->total,
+                    ];
+                }
+            }
+
+            if (! empty($expenseChartDaily)) {
+                $expenseChartMaxDaily = max(array_column($expenseChartDaily, 'amount'));
+                $daysWithSpend = array_filter($expenseChartDaily, fn ($d) => $d['amount'] > 0);
+                $spendingDaysCount = count($daysWithSpend) ?: 1;
+                $expenseChartDailyAvg = round($totalFilteredExpense / $spendingDaysCount);
+
+                foreach ($expenseChartDaily as $d) {
+                    if ($d['amount'] === $expenseChartMaxDaily && $expenseChartMaxDaily > 0) {
+                        $expenseChartPeakDay = $d;
+                        break;
+                    }
+                }
+            }
+        }
+
+        $transactions = (clone $query)->latest('transaction_date')->latest('id')->paginate(20)->withQueryString();
         $categories = Category::where('user_id', $userId)->orderBy('type')->orderBy('name')->get();
 
         return view('transactions.index', compact(
@@ -60,7 +186,12 @@ class TransactionController extends Controller
             'categories',
             'totalFilteredIncome',
             'totalFilteredExpense',
-            'netFiltered'
+            'netFiltered',
+            'expenseChartDaily',
+            'expenseChartCategories',
+            'expenseChartMaxDaily',
+            'expenseChartPeakDay',
+            'expenseChartDailyAvg'
         ));
     }
 

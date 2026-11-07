@@ -25,6 +25,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/transactions/scan-receipt', [TransactionController::class, 'scanReceipt'])->name('transactions.scan-receipt');
     Route::resource('transactions', TransactionController::class)->except(['create', 'show', 'edit']);
     Route::post('/budgets/{budget}/top-up', [BudgetController::class, 'topUp'])->name('budgets.top-up');
+    Route::post('/budgets/{budget}/deduct', [BudgetController::class, 'deduct'])->name('budgets.deduct');
     Route::resource('budgets', BudgetController::class)->except(['create', 'show', 'edit']);
     Route::resource('categories', CategoryController::class)->except(['create', 'show', 'edit']);
 
