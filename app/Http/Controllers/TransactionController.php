@@ -29,12 +29,46 @@ class TransactionController extends Controller
             $query->where('category_id', $request->category_id);
         }
 
-        if ($request->filled('start_date')) {
-            $query->whereDate('transaction_date', '>=', $request->start_date);
+        $today = now();
+        $preset = $request->query('preset');
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
+
+        if ($preset && ! $startDate && ! $endDate) {
+            switch ($preset) {
+                case 'today':
+                    $startDate = $today->toDateString();
+                    $endDate = $today->toDateString();
+                    break;
+                case 'this_month':
+                    $startDate = $today->copy()->startOfMonth()->toDateString();
+                    $endDate = $today->copy()->endOfMonth()->toDateString();
+                    break;
+                case 'last_month':
+                    $startDate = $today->copy()->subMonthNoOverflow()->startOfMonth()->toDateString();
+                    $endDate = $today->copy()->subMonthNoOverflow()->endOfMonth()->toDateString();
+                    break;
+                case '7_days':
+                    $startDate = $today->copy()->subDays(6)->toDateString();
+                    $endDate = $today->toDateString();
+                    break;
+                case '30_days':
+                    $startDate = $today->copy()->subDays(29)->toDateString();
+                    $endDate = $today->toDateString();
+                    break;
+                case 'all':
+                    $startDate = null;
+                    $endDate = null;
+                    break;
+            }
         }
 
-        if ($request->filled('end_date')) {
-            $query->whereDate('transaction_date', '<=', $request->end_date);
+        if ($startDate) {
+            $query->whereDate('transaction_date', '>=', $startDate);
+        }
+
+        if ($endDate) {
+            $query->whereDate('transaction_date', '<=', $endDate);
         }
 
         if ($request->filled('search')) {
@@ -191,7 +225,10 @@ class TransactionController extends Controller
             'expenseChartCategories',
             'expenseChartMaxDaily',
             'expenseChartPeakDay',
-            'expenseChartDailyAvg'
+            'expenseChartDailyAvg',
+            'startDate',
+            'endDate',
+            'preset'
         ));
     }
 

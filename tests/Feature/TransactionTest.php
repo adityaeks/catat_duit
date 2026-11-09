@@ -307,4 +307,41 @@ class TransactionTest extends TestCase
         $response->assertStatus(200);
         $response->assertDontSee('Grafik Pengeluaran');
     }
+
+    public function test_transaction_page_filters_by_preset(): void
+    {
+        $user = User::factory()->create();
+        $cat = $user->categories()->create([
+            'name' => 'Belanja',
+            'type' => 'expense',
+            'icon' => 'shopping-cart',
+            'color' => '#8b5cf6',
+        ]);
+
+        $user->transactions()->create([
+            'category_id' => $cat->id,
+            'type' => 'expense',
+            'amount' => 50000,
+            'transaction_date' => now()->toDateString(),
+            'description' => 'Transaksi Hari Ini',
+        ]);
+
+        $user->transactions()->create([
+            'category_id' => $cat->id,
+            'type' => 'expense',
+            'amount' => 75000,
+            'transaction_date' => now()->subMonthNoOverflow()->toDateString(),
+            'description' => 'Transaksi Bulan Lalu',
+        ]);
+
+        $responseToday = $this->actingAs($user)->get(route('transactions.index', ['preset' => 'today']));
+        $responseToday->assertStatus(200);
+        $responseToday->assertSee('Transaksi Hari Ini');
+        $responseToday->assertDontSee('Transaksi Bulan Lalu');
+
+        $responseLastMonth = $this->actingAs($user)->get(route('transactions.index', ['preset' => 'last_month']));
+        $responseLastMonth->assertStatus(200);
+        $responseLastMonth->assertSee('Transaksi Bulan Lalu');
+        $responseLastMonth->assertDontSee('Transaksi Hari Ini');
+    }
 }

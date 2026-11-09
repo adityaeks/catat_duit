@@ -40,6 +40,28 @@ textarea,
     user-select: text !important;
 }
 
+/* Date Input Styling & Mobile Picker Fixes */
+input[type="date"] {
+    color-scheme: dark;
+    min-height: 2.25rem;
+    cursor: pointer;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.9) brightness(1.2);
+    cursor: pointer;
+    opacity: 0.85;
+    padding: 2px;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+}
+
+input[type="date"]::-webkit-datetime-edit {
+    cursor: pointer;
+}
+
 /* Tabular figures for financial numbers */
 .num-tabular {
     font-variant-numeric: tabular-nums;

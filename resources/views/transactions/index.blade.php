@@ -30,8 +30,38 @@
 
     <!-- Filter & Search Panel -->
     <div class="surface-card rounded-2xl p-3.5 space-y-3">
-        <form method="GET" action="{{ route('transactions.index') }}" class="space-y-3">
+        <form method="GET" action="{{ route('transactions.index') }}" id="transactionFilterForm" class="space-y-3">
             
+            <!-- Quick Date Preset Pills -->
+            <div class="flex items-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar text-xs">
+                <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider flex-shrink-0 mr-0.5">Periode:</span>
+                <button type="button" 
+                        onclick="setTransactionPreset('this_month')" 
+                        class="px-2.5 py-1 rounded-xl transition-all flex-shrink-0 text-xs font-semibold cursor-pointer {{ (($preset ?? null) === 'this_month' || (($startDate ?? null) === now()->startOfMonth()->toDateString() && ($endDate ?? null) === now()->endOfMonth()->toDateString())) ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shadow-sm' : 'surface-inset text-slate-400 hover:text-white' }}">
+                    Bulan Ini
+                </button>
+                <button type="button" 
+                        onclick="setTransactionPreset('last_month')" 
+                        class="px-2.5 py-1 rounded-xl transition-all flex-shrink-0 text-xs font-semibold cursor-pointer {{ (($preset ?? null) === 'last_month' || (($startDate ?? null) === now()->subMonthNoOverflow()->startOfMonth()->toDateString() && ($endDate ?? null) === now()->subMonthNoOverflow()->endOfMonth()->toDateString())) ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shadow-sm' : 'surface-inset text-slate-400 hover:text-white' }}">
+                    Bulan Lalu
+                </button>
+                <button type="button" 
+                        onclick="setTransactionPreset('7_days')" 
+                        class="px-2.5 py-1 rounded-xl transition-all flex-shrink-0 text-xs font-semibold cursor-pointer {{ (($preset ?? null) === '7_days' || (($startDate ?? null) === now()->subDays(6)->toDateString() && ($endDate ?? null) === now()->toDateString())) ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shadow-sm' : 'surface-inset text-slate-400 hover:text-white' }}">
+                    7 Hari
+                </button>
+                <button type="button" 
+                        onclick="setTransactionPreset('today')" 
+                        class="px-2.5 py-1 rounded-xl transition-all flex-shrink-0 text-xs font-semibold cursor-pointer {{ (($preset ?? null) === 'today' || (($startDate ?? null) === now()->toDateString() && ($endDate ?? null) === now()->toDateString())) ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shadow-sm' : 'surface-inset text-slate-400 hover:text-white' }}">
+                    Hari Ini
+                </button>
+                <button type="button" 
+                        onclick="setTransactionPreset('all')" 
+                        class="px-2.5 py-1 rounded-xl transition-all flex-shrink-0 text-xs font-semibold cursor-pointer {{ (($preset ?? null) === 'all' || (! ($startDate ?? null) && ! ($endDate ?? null) && ! request('start_date') && ! request('end_date'))) ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shadow-sm' : 'surface-inset text-slate-400 hover:text-white' }}">
+                    Semua
+                </button>
+            </div>
+
             <!-- Search & Filter Fields (Responsive 1-col on mobile, 4-col on desktop) -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
                 <div class="relative">
@@ -58,25 +88,40 @@
                     </select>
                 </div>
 
-                <div>
-                    <input type="date" 
-                           name="start_date" 
-                           value="{{ request('start_date') }}" 
-                           class="w-full px-2.5 py-2 surface-inset rounded-xl text-xs text-slate-300 focus:outline-none focus:border-emerald-500 select-text"
-                           title="Dari Tanggal">
-                </div>
+                <!-- Date Range (Grid 2 kolom pada mobile & desktop) -->
+                <div class="grid grid-cols-2 gap-1.5 sm:col-span-2 lg:col-span-2">
+                    <div class="relative">
+                        <label for="filter_start_date" class="block text-[10px] text-slate-400 font-semibold mb-1 flex items-center gap-1 cursor-pointer">
+                            <x-icon name="calendar" class="w-3 h-3 text-emerald-400" />
+                            <span>Dari Tgl</span>
+                        </label>
+                        <input type="date" 
+                               name="start_date" 
+                               id="filter_start_date"
+                               value="{{ $startDate ?? request('start_date') }}" 
+                               onclick="try { this.showPicker(); } catch(e) {}"
+                               class="w-full px-2.5 py-2 surface-inset rounded-xl text-xs text-slate-200 focus:outline-none focus:border-emerald-500 cursor-pointer font-medium"
+                               title="Dari Tanggal">
+                    </div>
 
-                <div>
-                    <input type="date" 
-                           name="end_date" 
-                           value="{{ request('end_date') }}" 
-                           class="w-full px-2.5 py-2 surface-inset rounded-xl text-xs text-slate-300 focus:outline-none focus:border-emerald-500 select-text"
-                           title="Sampai Tanggal">
+                    <div class="relative">
+                        <label for="filter_end_date" class="block text-[10px] text-slate-400 font-semibold mb-1 flex items-center gap-1 cursor-pointer">
+                            <x-icon name="calendar" class="w-3 h-3 text-emerald-400" />
+                            <span>Sampai Tgl</span>
+                        </label>
+                        <input type="date" 
+                               name="end_date" 
+                               id="filter_end_date"
+                               value="{{ $endDate ?? request('end_date') }}" 
+                               onclick="try { this.showPicker(); } catch(e) {}"
+                               class="w-full px-2.5 py-2 surface-inset rounded-xl text-xs text-slate-200 focus:outline-none focus:border-emerald-500 cursor-pointer font-medium"
+                               title="Sampai Tanggal">
+                    </div>
                 </div>
             </div>
 
             <!-- Filter Buttons -->
-            <div class="flex items-center justify-between pt-1">
+            <div class="flex items-center justify-between pt-1 border-t border-white/[0.04]">
                 <a href="{{ route('transactions.index') }}" class="text-xs text-slate-400 hover:text-white font-medium">
                     Reset Filter
                 </a>
@@ -307,5 +352,58 @@
             }
         });
     }
+
+    function setTransactionPreset(preset) {
+        const startInput = document.getElementById('filter_start_date');
+        const endInput = document.getElementById('filter_end_date');
+        if (!startInput || !endInput) return;
+
+        const now = new Date();
+        const formatDate = (d) => {
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+
+        if (preset === 'today') {
+            const todayStr = formatDate(now);
+            startInput.value = todayStr;
+            endInput.value = todayStr;
+        } else if (preset === '7_days') {
+            const past = new Date();
+            past.setDate(now.getDate() - 6);
+            startInput.value = formatDate(past);
+            endInput.value = formatDate(now);
+        } else if (preset === 'this_month') {
+            const first = new Date(now.getFullYear(), now.getMonth(), 1);
+            const last = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            startInput.value = formatDate(first);
+            endInput.value = formatDate(last);
+        } else if (preset === 'last_month') {
+            const first = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            const last = new Date(now.getFullYear(), now.getMonth(), 0);
+            startInput.value = formatDate(first);
+            endInput.value = formatDate(last);
+        } else if (preset === 'all') {
+            startInput.value = '';
+            endInput.value = '';
+        }
+
+        startInput.form.submit();
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        ['filter_start_date', 'filter_end_date'].forEach(function(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('click', function() {
+                    try {
+                        this.showPicker();
+                    } catch (e) {}
+                });
+            }
+        });
+    });
 </script>
 @endsection
