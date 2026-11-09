@@ -480,7 +480,7 @@
                                 <div class="flex items-center gap-1.5 text-[10px] text-slate-400 mt-0.5">
                                     <span>{{ $tx->category->name }}</span>
                                     <span>•</span>
-                                    <span>{{ $tx->transaction_date->translatedFormat('d M') }}</span>
+                                    <span>{{ $tx->transaction_date->translatedFormat($tx->transaction_date->isCurrentYear() ? 'l, d M' : 'l, d M Y') }}</span>
                                     @if($scope === 'couple' && $isCoupled && $partner)
                                         <span>•</span>
                                         <span class="px-1.5 py-0.5 rounded text-[9px] font-bold {{ $tx->user_id === auth()->id() ? 'bg-slate-800 text-slate-300 border border-slate-700' : 'bg-pink-500/20 text-pink-300 border border-pink-500/30' }}">

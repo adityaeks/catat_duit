@@ -50,6 +50,7 @@ class DashboardTest extends TestCase
         $response->assertSee('Habis Hari Ini');
         $response->assertSee('28.000');
         $response->assertSee('1 transaksi');
+        $response->assertSee('Rabu, 14 Okt');
 
         Carbon::setTestNow();
     }

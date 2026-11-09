@@ -17,10 +17,25 @@ class TransactionTest extends TestCase
     public function test_transaction_page_is_accessible(): void
     {
         $user = User::factory()->create();
+        $cat = $user->categories()->create([
+            'name' => 'Makan',
+            'type' => 'expense',
+            'icon' => 'utensils',
+            'color' => '#f97316',
+        ]);
+        $user->transactions()->create([
+            'category_id' => $cat->id,
+            'type' => 'expense',
+            'amount' => 50000,
+            'transaction_date' => '2026-10-20',
+            'description' => 'Makan Siang',
+        ]);
+
         $response = $this->actingAs($user)->get(route('transactions.index'));
 
         $response->assertStatus(200);
         $response->assertSee('Riwayat Transaksi');
+        $response->assertSee('Selasa, 20 Okt 2026');
     }
 
     public function test_can_record_new_transaction(): void

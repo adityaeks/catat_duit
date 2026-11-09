@@ -174,7 +174,7 @@
                                 <div class="flex items-center gap-1.5 text-[10px] text-slate-400 mt-0.5">
                                     <span class="font-medium text-slate-300">{{ $tx->category->name }}</span>
                                     <span>•</span>
-                                    <span>{{ $tx->transaction_date->translatedFormat('d M Y') }}</span>
+                                    <span>{{ $tx->transaction_date->translatedFormat('l, d M Y') }}</span>
                                 </div>
                             </div>
                         </div>
