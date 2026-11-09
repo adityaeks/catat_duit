@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Budget;
 use App\Models\Category;
 use App\Models\Transaction;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,9 +19,19 @@ class BudgetController extends Controller
      */
     public function index(): View
     {
-        $userId = Auth::id();
+        /** @var User $user */
+        $user = Auth::user();
+        $userId = $user->id;
         $today = now()->format('Y-m-d');
-        $budgets = Budget::where('user_id', $userId)->with('category')->orderBy('start_date', 'desc')->get();
+
+        $budgetQuery = Budget::where('user_id', $userId);
+        if ($user->isCoupled() && $partner = $user->partner()) {
+            $budgetQuery->orWhere(function ($q) use ($partner) {
+                $q->where('user_id', $partner->id)->where('is_couple', true);
+            });
+        }
+
+        $budgets = $budgetQuery->with(['category', 'user'])->orderBy('start_date', 'desc')->get();
 
         $activeBudgets = $budgets->filter(fn ($b) => $b->is_active);
         $upcomingBudgets = $budgets->filter(fn ($b) => $b->start_date->format('Y-m-d') > $today);
@@ -63,9 +74,11 @@ class BudgetController extends Controller
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'notes' => 'nullable|string|max:500',
+            'is_couple' => 'nullable|boolean',
         ]);
 
-        Budget::create(array_merge($validated, ['user_id' => $userId]));
+        $isCouple = $request->boolean('is_couple');
+        Budget::create(array_merge($validated, ['user_id' => $userId, 'is_couple' => $isCouple]));
 
         return back()->with('success', 'Anggaran berhasil dibuat!');
     }
@@ -75,11 +88,14 @@ class BudgetController extends Controller
      */
     public function update(Request $request, Budget $budget): RedirectResponse
     {
-        if ($budget->user_id !== Auth::id()) {
+        $isOwner = $budget->user_id === Auth::id();
+        $isPartnerCouple = ! $isOwner && $budget->is_couple && Auth::user()->isCoupled() && $budget->user_id === Auth::user()->partner()?->id;
+
+        if (! $isOwner && ! $isPartnerCouple) {
             abort(403);
         }
 
-        $userId = Auth::id();
+        $userId = $budget->user_id;
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -91,8 +107,10 @@ class BudgetController extends Controller
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'notes' => 'nullable|string|max:500',
+            'is_couple' => 'nullable|boolean',
         ]);
 
+        $validated['is_couple'] = $request->boolean('is_couple');
         $budget->update($validated);
 
         return back()->with('success', 'Anggaran berhasil diperbarui!');
@@ -103,7 +121,8 @@ class BudgetController extends Controller
      */
     public function topUp(Request $request, Budget $budget): RedirectResponse
     {
-        if ($budget->user_id !== Auth::id()) {
+        $canManage = $budget->user_id === Auth::id() || ($budget->is_couple && Auth::user()->isCoupled() && $budget->user_id === Auth::user()->partner()?->id);
+        if (! $canManage) {
             abort(403);
         }
 
@@ -168,7 +187,8 @@ class BudgetController extends Controller
      */
     public function deduct(Request $request, Budget $budget): RedirectResponse
     {
-        if ($budget->user_id !== Auth::id()) {
+        $canManage = $budget->user_id === Auth::id() || ($budget->is_couple && Auth::user()->isCoupled() && $budget->user_id === Auth::user()->partner()?->id);
+        if (! $canManage) {
             abort(403);
         }
 

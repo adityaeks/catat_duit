@@ -161,6 +161,13 @@
                         <x-icon name="tags" class="w-4 h-4 {{ request()->routeIs('categories.*') ? 'stroke-[2.2]' : 'stroke-[1.8]' }}" />
                         <span>Kategori</span>
                     </a>
+
+                    <button type="button" 
+                            onclick="openCoupleModal()" 
+                            class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all text-slate-400 hover:text-pink-300 hover:bg-pink-500/10 cursor-pointer">
+                        <span class="w-4 h-4 flex items-center justify-center text-xs">💕</span>
+                        <span class="truncate">{{ auth()->user()?->isCoupled() ? 'Couple: ' . Str::limit(auth()->user()->partner()?->name, 12) : 'Hubungkan Pasangan' }}</span>
+                    </button>
                 </nav>
             </div>
 
@@ -897,5 +904,7 @@
             }
         }
     </script>
+    @include('partials.couple-modal')
+
 </body>
 </html>

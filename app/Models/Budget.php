@@ -18,6 +18,7 @@ class Budget extends Model
         'start_date',
         'end_date',
         'notes',
+        'is_couple',
     ];
 
     /**
@@ -29,6 +30,7 @@ class Budget extends Model
             'amount' => 'decimal:2',
             'start_date' => 'date',
             'end_date' => 'date',
+            'is_couple' => 'boolean',
         ];
     }
 
@@ -43,9 +45,58 @@ class Budget extends Model
     /**
      * @return BelongsTo<Category, $this>
      */
-    public function category()
+    public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    /**
+     * Get user IDs associated with this budget (single user or coupled partners).
+     *
+     * @return list<int>
+     */
+    public function getEffectiveUserIds(): array
+    {
+        if (! $this->user_id) {
+            return [];
+        }
+
+        if ($this->is_couple) {
+            $user = $this->user ?? User::find($this->user_id);
+            if ($user && $user->isCoupled()) {
+                $partner = $user->partner();
+                if ($partner) {
+                    return [$this->user_id, $partner->id];
+                }
+            }
+        }
+
+        return [$this->user_id];
+    }
+
+    /**
+     * Get category IDs matching this budget's category across effective users.
+     *
+     * @param  list<int>  $userIds
+     * @return list<int>
+     */
+    protected function getMatchingCategoryIds(array $userIds): array
+    {
+        if (! $this->category_id) {
+            return [];
+        }
+
+        if ($this->is_couple && count($userIds) > 1) {
+            $categoryName = $this->category?->name ?? Category::find($this->category_id)?->name;
+            if ($categoryName) {
+                return Category::whereIn('user_id', $userIds)
+                    ->where('name', $categoryName)
+                    ->pluck('id')
+                    ->all();
+            }
+        }
+
+        return [$this->category_id];
     }
 
     /**
@@ -53,16 +104,19 @@ class Budget extends Model
      */
     public function getSpentAmountAttribute(): float
     {
+        $userIds = $this->getEffectiveUserIds();
+        if (empty($userIds)) {
+            return 0.0;
+        }
+
         $query = Transaction::where('type', 'expense')
+            ->whereIn('user_id', $userIds)
             ->whereDate('transaction_date', '>=', $this->start_date->format('Y-m-d'))
             ->whereDate('transaction_date', '<=', $this->end_date->format('Y-m-d'));
 
-        if ($this->user_id) {
-            $query->where('user_id', $this->user_id);
-        }
-
-        if ($this->category_id) {
-            $query->where('category_id', $this->category_id);
+        $categoryIds = $this->getMatchingCategoryIds($userIds);
+        if (! empty($categoryIds)) {
+            $query->whereIn('category_id', $categoryIds);
         }
 
         return (float) $query->sum('amount');
@@ -116,16 +170,19 @@ class Budget extends Model
             return 0.0;
         }
 
+        $userIds = $this->getEffectiveUserIds();
+        if (empty($userIds)) {
+            return 0.0;
+        }
+
         $query = Transaction::where('type', 'expense')
+            ->whereIn('user_id', $userIds)
             ->whereDate('transaction_date', '>=', $startDate)
             ->whereDate('transaction_date', '<', $today);
 
-        if ($this->user_id) {
-            $query->where('user_id', $this->user_id);
-        }
-
-        if ($this->category_id) {
-            $query->where('category_id', $this->category_id);
+        $categoryIds = $this->getMatchingCategoryIds($userIds);
+        if (! empty($categoryIds)) {
+            $query->whereIn('category_id', $categoryIds);
         }
 
         return (float) $query->sum('amount');
@@ -142,15 +199,18 @@ class Budget extends Model
             return 0.0;
         }
 
-        $query = Transaction::where('type', 'expense')
-            ->whereDate('transaction_date', $today);
-
-        if ($this->user_id) {
-            $query->where('user_id', $this->user_id);
+        $userIds = $this->getEffectiveUserIds();
+        if (empty($userIds)) {
+            return 0.0;
         }
 
-        if ($this->category_id) {
-            $query->where('category_id', $this->category_id);
+        $query = Transaction::where('type', 'expense')
+            ->whereIn('user_id', $userIds)
+            ->whereDate('transaction_date', $today);
+
+        $categoryIds = $this->getMatchingCategoryIds($userIds);
+        if (! empty($categoryIds)) {
+            $query->whereIn('category_id', $categoryIds);
         }
 
         return (float) $query->sum('amount');

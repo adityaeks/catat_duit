@@ -74,6 +74,15 @@
                             <div class="space-y-1">
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <h3 class="font-bold text-sm text-white tracking-tight">{{ $budget->name }}</h3>
+                                    @if($budget->is_couple)
+                                        <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-pink-500/15 border border-pink-500/30 text-pink-300 flex items-center gap-1">
+                                            <span>💕</span>
+                                            <span>Couple</span>
+                                            @if($budget->user_id !== auth()->id())
+                                                <span class="text-[9px] text-pink-400 font-normal">({{ Str::limit($budget->user?->name ?? 'Pasangan', 10) }})</span>
+                                            @endif
+                                        </span>
+                                    @endif
                                     @if($budget->category)
                                         <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md surface-inset text-slate-300">
                                             {{ $budget->category->name }}
@@ -112,16 +121,18 @@
                                         title="Ubah Anggaran">
                                     <x-icon name="edit-3" class="w-4 h-4" />
                                 </button>
-                                <form action="{{ route('budgets.destroy', $budget) }}" method="POST">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="button" 
-                                            onclick="confirmDelete(this.form, 'Hapus Anggaran?', 'Anggaran {{ addslashes($budget->name) }} akan dihapus secara permanen.')" 
-                                            class="p-1.5 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-rose-500/10 transition-all cursor-pointer"
-                                            title="Hapus Anggaran">
-                                        <x-icon name="trash-2" class="w-4 h-4" />
-                                    </button>
-                                </form>
+                                @if($budget->user_id === auth()->id())
+                                    <form action="{{ route('budgets.destroy', $budget) }}" method="POST">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="button" 
+                                                onclick="confirmDelete(this.form, 'Hapus Anggaran?', 'Anggaran {{ addslashes($budget->name) }} akan dihapus secara permanen.')" 
+                                                class="p-1.5 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-rose-500/10 transition-all cursor-pointer"
+                                                title="Hapus Anggaran">
+                                            <x-icon name="trash-2" class="w-4 h-4" />
+                                        </button>
+                                    </form>
+                                @endif
                             </div>
                         </div>
 
@@ -212,7 +223,12 @@
                         @foreach($upcomingBudgets as $budget)
                             <div class="p-3.5 surface-card surface-card-hover rounded-2xl flex items-center justify-between gap-3 transition-all">
                                 <div>
-                                    <p class="text-sm font-bold text-white">{{ $budget->name }}</p>
+                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                        <p class="text-sm font-bold text-white">{{ $budget->name }}</p>
+                                        @if($budget->is_couple)
+                                            <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-pink-500/15 border border-pink-500/30 text-pink-300">💕 Couple</span>
+                                        @endif
+                                    </div>
                                     <p class="text-xs text-slate-400 num-tabular">{{ $budget->start_date->format('d M') }} – {{ $budget->end_date->format('d M Y') }}</p>
                                 </div>
                                 <div class="text-right flex items-center gap-1.5">
@@ -229,15 +245,17 @@
                                             title="Kurangi Anggaran (-)">
                                         <x-icon name="minus" class="w-3.5 h-3.5 stroke-[2.8]" />
                                     </button>
-                                    <form action="{{ route('budgets.destroy', $budget) }}" method="POST">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="button" 
-                                                onclick="confirmDelete(this.form, 'Hapus Anggaran?', 'Anggaran {{ addslashes($budget->name) }} akan dihapus secara permanen.')" 
-                                                class="p-1.5 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-rose-500/10 cursor-pointer transition-all">
-                                            <x-icon name="trash-2" class="w-4 h-4" />
-                                        </button>
-                                    </form>
+                                    @if($budget->user_id === auth()->id())
+                                        <form action="{{ route('budgets.destroy', $budget) }}" method="POST">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="button" 
+                                                    onclick="confirmDelete(this.form, 'Hapus Anggaran?', 'Anggaran {{ addslashes($budget->name) }} akan dihapus secara permanen.')" 
+                                                    class="p-1.5 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-rose-500/10 cursor-pointer transition-all">
+                                                <x-icon name="trash-2" class="w-4 h-4" />
+                                            </button>
+                                        </form>
+                                    @endif
                                 </div>
                             </div>
                         @endforeach
@@ -380,6 +398,23 @@
                 </div>
             </div>
 
+            <!-- Anggaran Couple Toggle / Checkbox -->
+            @if(auth()->user()->isCoupled())
+                <div class="p-3.5 rounded-2xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-2.5">
+                        <span class="text-lg">💕</span>
+                        <div>
+                            <label for="budget_is_couple" class="text-xs font-bold text-white cursor-pointer select-none">Anggaran Couple (Bersama)</label>
+                            <p class="text-[10px] text-pink-300">Pengeluaran belanja Anda dan pasangan akan memotong kuota ini bersama-sama.</p>
+                        </div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                        <input type="checkbox" name="is_couple" id="budget_is_couple" value="1" class="sr-only peer">
+                        <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-500"></div>
+                    </label>
+                </div>
+            @endif
+
             <!-- Catatan -->
             <div>
                 <label class="block text-xs font-semibold text-slate-400 mb-1.5">Catatan Tambahan (Opsional)</label>
@@ -416,6 +451,8 @@
         document.getElementById('budget_display_amount').value = '';
         document.getElementById('budget_real_amount').value = '';
         document.getElementById('budget_notes').value = '';
+        const coupleCheckbox = document.getElementById('budget_is_couple');
+        if (coupleCheckbox) coupleCheckbox.checked = false;
         document.getElementById('budgetSubmitText').innerText = 'Simpan Anggaran';
         setPresetRange('this_month');
     }
@@ -440,6 +477,8 @@
         document.getElementById('budget_start_date').value = start;
         document.getElementById('budget_end_date').value = end;
         document.getElementById('budget_notes').value = budget.notes || '';
+        const coupleCheckbox = document.getElementById('budget_is_couple');
+        if (coupleCheckbox) coupleCheckbox.checked = Boolean(budget.is_couple);
         document.getElementById('budgetSubmitText').innerText = 'Perbarui Anggaran';
     }
 

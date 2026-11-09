@@ -16,6 +16,15 @@
         </div>
         <div class="flex items-center gap-1.5">
             <button type="button" 
+                    onclick="openCoupleModal()" 
+                    title="Fitur Couple"
+                    class="p-2 surface-card hover:surface-elevated text-pink-400 hover:text-white rounded-xl transition-all relative cursor-pointer">
+                <span class="text-xs">💕</span>
+                @if($isCoupled)
+                    <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-pink-400"></span>
+                @endif
+            </button>
+            <button type="button" 
                     onclick="openReminderModal()" 
                     id="reminderBellBtn"
                     title="Pengingat Jam 5 Sore"
@@ -48,10 +57,49 @@
             <!-- Hero Balance & Financial Ledger Card -->
             <div class="surface-card rounded-3xl p-5 sm:p-6 shadow-xl space-y-4 relative overflow-hidden">
                 
+                <!-- Couple Switcher / Pairing Status Bar -->
+                @if($isCoupled && $partner)
+                    <div class="flex items-center justify-between gap-2 flex-wrap pb-2.5 border-b border-white/[0.06]">
+                        <div class="flex items-center p-0.5 surface-inset rounded-xl border border-white/[0.06]">
+                            <a href="{{ route('dashboard', array_merge(request()->query(), ['scope' => 'personal'])) }}" 
+                               class="px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 {{ $scope === 'personal' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shadow-sm' : 'text-slate-400 hover:text-slate-200' }}">
+                                <span>👤 Pribadi</span>
+                            </a>
+                            <a href="{{ route('dashboard', array_merge(request()->query(), ['scope' => 'couple'])) }}" 
+                               class="px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 {{ $scope === 'couple' ? 'bg-pink-500/20 text-pink-300 border border-pink-500/30 shadow-sm' : 'text-slate-400 hover:text-slate-200' }}">
+                                <span>💕 Couple</span>
+                            </a>
+                        </div>
+
+                        <button type="button" 
+                                onclick="openCoupleModal()" 
+                                title="Pengaturan Pasangan"
+                                class="text-[11px] font-semibold text-pink-300 hover:text-white flex items-center gap-1.5 surface-inset px-2.5 py-1 rounded-xl border border-white/[0.04] cursor-pointer">
+                            <span class="w-2 h-2 rounded-full bg-pink-400 animate-pulse"></span>
+                            <span>{{ Str::limit($partner->name, 15) }}</span>
+                        </button>
+                    </div>
+                @else
+                    <div class="flex items-center justify-between gap-2 pb-2.5 border-b border-white/[0.06]">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-slate-300">Akun Finansial Pribadi</span>
+                        </div>
+                        <button type="button" 
+                                onclick="openCoupleModal()" 
+                                class="text-[11px] font-semibold text-pink-400 hover:text-pink-300 flex items-center gap-1 hover:underline cursor-pointer">
+                            <span>💕 Hubungkan Pasangan</span>
+                        </button>
+                    </div>
+                @endif
+
                 <div class="flex items-center justify-between gap-2">
                     <div class="flex items-center gap-2">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Saldo Bersih</span>
-                        <span class="text-[10px] font-mono font-medium px-2 py-0.5 rounded-md surface-inset text-slate-300">IDR</span>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                            {{ $scope === 'couple' ? 'Saldo Bersih (Couple)' : 'Saldo Bersih' }}
+                        </span>
+                        <span class="text-[10px] font-mono font-medium px-2 py-0.5 rounded-md surface-inset {{ $scope === 'couple' ? 'text-pink-300 border border-pink-500/30' : 'text-slate-300' }}">
+                            {{ $scope === 'couple' ? 'IDR • COUPLE' : 'IDR' }}
+                        </span>
                     </div>
 
                     <!-- Date Range Filter Trigger Button -->
@@ -88,12 +136,26 @@
                 <div class="pt-3.5 border-t border-white/[0.08] grid grid-cols-3 gap-2">
                     
                     <!-- Habis Hari Ini -->
-                    <div class="surface-inset rounded-2xl p-2.5 overflow-hidden text-left">
-                        <span class="text-[10px] text-slate-400 uppercase font-semibold tracking-wider block truncate">Hari Ini</span>
+                    <div class="surface-inset rounded-2xl p-2.5 overflow-hidden text-left {{ $scope === 'couple' ? 'border border-pink-500/20' : '' }}">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] text-slate-400 uppercase font-semibold tracking-wider block truncate">
+                                {{ $scope === 'couple' ? 'Hari Ini (Couple)' : 'Hari Ini' }}
+                            </span>
+                            @if($scope === 'couple')
+                                <span class="text-[9px] text-pink-400 font-bold">💕</span>
+                            @endif
+                        </div>
                         <p class="text-xs sm:text-sm font-bold text-slate-100 num-tabular truncate mt-0.5">
                             Rp {{ number_format($todayExpense, 0, ',', '.') }}
                         </p>
-                        <span class="text-[10px] text-slate-500 block truncate mt-0.5">{{ $todayExpenseCount }} transaksi</span>
+                        @if($scope === 'couple' && $isCoupled && $partner)
+                            <div class="text-[9px] text-slate-400 font-medium truncate mt-0.5 space-y-0.5" title="Anda: Rp {{ number_format($userTodayExpense, 0, ',', '.') }} • {{ $partner->name }}: Rp {{ number_format($partnerTodayExpense, 0, ',', '.') }}">
+                                <span class="text-slate-300 block truncate">Anda: <strong class="text-white num-tabular">Rp {{ number_format($userTodayExpense, 0, ',', '.') }}</strong></span>
+                                <span class="text-pink-400 block truncate">{{ Str::limit($partner->name, 7) }}: <strong class="text-pink-300 num-tabular">Rp {{ number_format($partnerTodayExpense, 0, ',', '.') }}</strong></span>
+                            </div>
+                        @else
+                            <span class="text-[10px] text-slate-500 block truncate mt-0.5">{{ $todayExpenseCount }} transaksi</span>
+                        @endif
                     </div>
 
                     <!-- Masuk (Periode) -->
@@ -148,6 +210,12 @@
                             <div>
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <h3 class="font-bold text-sm text-white">{{ $budget->name }}</h3>
+                                    @if($budget->is_couple)
+                                        <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-pink-500/15 text-pink-300 border border-pink-500/30 flex items-center gap-1">
+                                            <span>💕</span>
+                                            <span>Couple</span>
+                                        </span>
+                                    @endif
                                     @if($budget->category)
                                         <span class="text-[10px] font-medium px-2 py-0.5 rounded-md surface-inset text-slate-300">
                                             {{ $budget->category->name }}
@@ -288,6 +356,12 @@
                                     <span>{{ $tx->category->name }}</span>
                                     <span>•</span>
                                     <span>{{ $tx->transaction_date->translatedFormat('d M') }}</span>
+                                    @if($scope === 'couple' && $isCoupled && $partner)
+                                        <span>•</span>
+                                        <span class="px-1.5 py-0.5 rounded text-[9px] font-bold {{ $tx->user_id === auth()->id() ? 'bg-slate-800 text-slate-300 border border-slate-700' : 'bg-pink-500/20 text-pink-300 border border-pink-500/30' }}">
+                                            {{ $tx->user_id === auth()->id() ? 'Anda' : Str::limit($partner->name, 8) }}
+                                        </span>
+                                    @endif
                                 </div>
                             </div>
                         </div>

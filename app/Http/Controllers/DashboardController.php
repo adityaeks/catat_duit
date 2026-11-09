@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Budget;
 use App\Models\Category;
 use App\Models\Transaction;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,8 +15,30 @@ class DashboardController extends Controller
 {
     public function index(Request $request): View
     {
-        $userId = Auth::id();
+        /** @var User $user */
+        $user = Auth::user();
+        $userId = $user->id;
         $today = now();
+
+        $isCoupled = $user->isCoupled();
+        $partner = $isCoupled ? $user->partner() : null;
+
+        // Resolve scope: 'personal' or 'couple'
+        if ($request->has('scope')) {
+            $scope = $request->query('scope');
+            $request->session()->put('dashboard_scope', $scope);
+        } else {
+            $scope = $request->session()->get('dashboard_scope', 'personal');
+        }
+
+        if ($scope === 'couple' && ! $isCoupled) {
+            $scope = 'personal';
+            $request->session()->put('dashboard_scope', 'personal');
+        }
+
+        $targetUserIds = ($scope === 'couple' && $isCoupled && $partner)
+            ? [$user->id, $partner->id]
+            : [$user->id];
 
         // 1. Resolve date range filter & presets
         if ($request->has('reset')) {
@@ -93,8 +116,8 @@ class DashboardController extends Controller
         // 2. Human Readable Period Labels
         [$periodLabel, $periodDateRangeText] = $this->formatPeriodLabels($preset, $startDate, $endDate);
 
-        // 3. Transactions Base Query for User
-        $userTransactions = Transaction::where('user_id', $userId);
+        // 3. Transactions Base Query (Scoped to personal or couple)
+        $userTransactions = Transaction::whereIn('user_id', $targetUserIds);
 
         // All-Time Balance (for reference/total net worth)
         $allTimeIncome = (float) (clone $userTransactions)->where('type', 'income')->sum('amount');
@@ -121,7 +144,7 @@ class DashboardController extends Controller
         $thisMonthIncome = $periodIncome;
         $thisMonthExpense = $periodExpense;
 
-        // Today's Expense
+        // Today's Expense Total for active scope
         $todayExpense = (float) (clone $userTransactions)->where('type', 'expense')
             ->whereDate('transaction_date', $today->toDateString())
             ->sum('amount');
@@ -130,26 +153,48 @@ class DashboardController extends Controller
             ->whereDate('transaction_date', $today->toDateString())
             ->count();
 
+        // User & Partner specific today spend
+        $userTodayExpense = (float) Transaction::where('user_id', $user->id)
+            ->where('type', 'expense')
+            ->whereDate('transaction_date', $today->toDateString())
+            ->sum('amount');
+
+        $partnerTodayExpense = ($isCoupled && $partner)
+            ? (float) Transaction::where('user_id', $partner->id)
+                ->where('type', 'expense')
+                ->whereDate('transaction_date', $today->toDateString())
+                ->sum('amount')
+            : 0.0;
+
         // Budgets
-        $allBudgets = Budget::where('user_id', $userId)
-            ->with('category')
-            ->latest('start_date')
-            ->get();
+        if ($scope === 'couple' && $isCoupled && $partner) {
+            $allBudgets = Budget::where(function ($q) use ($user, $partner) {
+                $q->where('user_id', $user->id)
+                    ->orWhere(function ($q2) use ($partner) {
+                        $q2->where('user_id', $partner->id)->where('is_couple', true);
+                    });
+            })->with(['category', 'user'])->latest('start_date')->get();
+        } else {
+            $allBudgets = Budget::where('user_id', $userId)
+                ->with(['category', 'user'])
+                ->latest('start_date')
+                ->get();
+        }
         $activeBudgets = $allBudgets->filter(fn ($b) => $b->is_active);
 
         // Recent Transactions
-        $recentTransactions = Transaction::where('user_id', $userId)
-            ->with('category')
+        $recentTransactions = Transaction::whereIn('user_id', $targetUserIds)
+            ->with(['category', 'user'])
             ->latest('transaction_date')
             ->latest('id')
             ->take(7)
             ->get();
 
         // Expense Categories Breakdown (Filtered by selected period)
-        $expenseCategories = Category::where('user_id', $userId)
+        $expenseCategories = Category::whereIn('user_id', $targetUserIds)
             ->where('type', 'expense')
-            ->withSum(['transactions' => function ($q) use ($startDate, $endDate, $userId) {
-                $q->where('user_id', $userId);
+            ->withSum(['transactions' => function ($q) use ($startDate, $endDate, $targetUserIds) {
+                $q->whereIn('user_id', $targetUserIds);
                 if ($startDate && $endDate) {
                     $q->whereBetween('transaction_date', [$startDate, $endDate]);
                 } elseif ($startDate) {
@@ -163,7 +208,7 @@ class DashboardController extends Controller
             ->sortByDesc('transactions_sum_amount')
             ->values();
 
-        $allCategories = Category::where('user_id', $userId)
+        $allCategories = Category::whereIn('user_id', $targetUserIds)
             ->orderBy('type')
             ->orderBy('name')
             ->get();
@@ -184,11 +229,16 @@ class DashboardController extends Controller
             'thisMonthExpense',
             'todayExpense',
             'todayExpenseCount',
+            'userTodayExpense',
+            'partnerTodayExpense',
             'activeBudgets',
             'allBudgets',
             'recentTransactions',
             'expenseCategories',
-            'allCategories'
+            'allCategories',
+            'isCoupled',
+            'partner',
+            'scope'
         ));
     }
 

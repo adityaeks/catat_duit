@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('budgets', function (Blueprint $table) {
-            //
+            $table->boolean('is_couple')->default(false)->after('notes');
         });
     }
 
@@ -22,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('budgets', function (Blueprint $table) {
-            //
+            $table->dropColumn('is_couple');
         });
     }
 };

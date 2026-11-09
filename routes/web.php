@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CoupleController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PushNotificationController;
 use App\Http\Controllers\TransactionController;
@@ -28,6 +29,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/budgets/{budget}/deduct', [BudgetController::class, 'deduct'])->name('budgets.deduct');
     Route::resource('budgets', BudgetController::class)->except(['create', 'show', 'edit']);
     Route::resource('categories', CategoryController::class)->except(['create', 'show', 'edit']);
+
+    // Couple Feature Routes
+    Route::post('/couple/connect', [CoupleController::class, 'connect'])->name('couple.connect');
+    Route::post('/couple/disconnect', [CoupleController::class, 'disconnect'])->name('couple.disconnect');
 
     // Web Push Notification Routes
     Route::get('/push/vapid-public-key', [PushNotificationController::class, 'vapidPublicKey'])->name('push.key');
