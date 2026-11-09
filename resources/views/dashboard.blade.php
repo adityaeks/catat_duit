@@ -139,7 +139,7 @@
                     <div class="surface-inset rounded-2xl p-2.5 overflow-hidden text-left {{ $scope === 'couple' ? 'border border-pink-500/20' : '' }}">
                         <div class="flex items-center justify-between">
                             <span class="text-[10px] text-slate-400 uppercase font-semibold tracking-wider block truncate">
-                                {{ $scope === 'couple' ? 'Hari Ini (Couple)' : 'Hari Ini' }}
+                                {{ $scope === 'couple' ? 'Hari Ini (Total)' : 'Hari Ini' }}
                             </span>
                             @if($scope === 'couple')
                                 <span class="text-[9px] text-pink-400 font-bold">💕</span>
@@ -148,19 +148,14 @@
                         <p class="text-xs sm:text-sm font-bold text-slate-100 num-tabular truncate mt-0.5">
                             Rp {{ number_format($todayExpense, 0, ',', '.') }}
                         </p>
-                        @if($scope === 'couple' && $isCoupled && $partner)
-                            <div class="text-[9px] text-slate-400 font-medium truncate mt-0.5 space-y-0.5" title="Anda: Rp {{ number_format($userTodayExpense, 0, ',', '.') }} • {{ $partner->name }}: Rp {{ number_format($partnerTodayExpense, 0, ',', '.') }}">
-                                <span class="text-slate-300 block truncate">Anda: <strong class="text-white num-tabular">Rp {{ number_format($userTodayExpense, 0, ',', '.') }}</strong></span>
-                                <span class="text-pink-400 block truncate">{{ Str::limit($partner->name, 7) }}: <strong class="text-pink-300 num-tabular">Rp {{ number_format($partnerTodayExpense, 0, ',', '.') }}</strong></span>
-                            </div>
-                        @else
-                            <span class="text-[10px] text-slate-500 block truncate mt-0.5">{{ $todayExpenseCount }} transaksi</span>
-                        @endif
+                        <span class="text-[10px] text-slate-500 block truncate mt-0.5">{{ $todayExpenseCount }} transaksi</span>
                     </div>
 
                     <!-- Masuk (Periode) -->
                     <div class="surface-inset rounded-2xl p-2.5 overflow-hidden text-left">
-                        <span class="text-[10px] text-slate-400 uppercase font-semibold tracking-wider block truncate">Masuk</span>
+                        <span class="text-[10px] text-slate-400 uppercase font-semibold tracking-wider block truncate">
+                            {{ $scope === 'couple' ? 'Total Masuk' : 'Masuk' }}
+                        </span>
                         <p class="text-xs sm:text-sm font-bold text-emerald-400 num-tabular truncate mt-0.5">
                             +Rp {{ number_format($periodIncome, 0, ',', '.') }}
                         </p>
@@ -169,7 +164,9 @@
 
                     <!-- Keluar (Periode) -->
                     <div class="surface-inset rounded-2xl p-2.5 overflow-hidden text-left">
-                        <span class="text-[10px] text-slate-400 uppercase font-semibold tracking-wider block truncate">Keluar</span>
+                        <span class="text-[10px] text-slate-400 uppercase font-semibold tracking-wider block truncate">
+                            {{ $scope === 'couple' ? 'Total Keluar' : 'Keluar' }}
+                        </span>
                         <p class="text-xs sm:text-sm font-bold text-rose-400 num-tabular truncate mt-0.5">
                             -Rp {{ number_format($periodExpense, 0, ',', '.') }}
                         </p>
@@ -177,6 +174,134 @@
                     </div>
 
                 </div>
+
+                @if($scope === 'couple' && $isCoupled && $partner)
+                    <!-- TAMPILAN FINANSIAL MASING-MASING ORANG (ANDA & PASANGAN) -->
+                    <div class="pt-3.5 border-t border-white/[0.08] space-y-2.5">
+                        
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="font-bold text-slate-300 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                                <x-icon name="users" class="w-3.5 h-3.5 text-pink-400" />
+                                <span>Rincian Finansial Masing-Masing</span>
+                            </span>
+                            <span class="text-[10px] text-slate-400 font-medium">{{ $periodLabel }}</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            
+                            <!-- Card 1: Finansial Anda -->
+                            <div class="p-3.5 rounded-2xl bg-gradient-to-br from-emerald-500/10 via-white/[0.02] to-transparent border border-emerald-500/25 space-y-3">
+                                <div class="flex items-center justify-between gap-2">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <div class="w-7 h-7 rounded-xl bg-emerald-500/20 text-emerald-300 font-extrabold text-xs flex items-center justify-center border border-emerald-500/30 flex-shrink-0">
+                                            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                                        </div>
+                                        <div class="min-w-0">
+                                            <h4 class="text-xs font-bold text-white truncate flex items-center gap-1">
+                                                <span>Anda</span>
+                                                <span class="text-[10px] text-slate-400 font-normal">({{ auth()->user()->name }})</span>
+                                            </h4>
+                                            <p class="text-[9px] text-emerald-400/80 font-semibold uppercase tracking-wider">Saldo Periode Ini</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-xs font-bold num-tabular px-2.5 py-1 rounded-xl {{ $userPeriodBalance >= 0 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-300 border border-rose-500/30' }}">
+                                        {{ $userPeriodBalance < 0 ? '-Rp ' . number_format(abs($userPeriodBalance), 0, ',', '.') : 'Rp ' . number_format($userPeriodBalance, 0, ',', '.') }}
+                                    </span>
+                                </div>
+
+                                <div class="grid grid-cols-3 gap-1.5 pt-2 border-t border-white/[0.06] text-left">
+                                    <div class="p-2 rounded-xl bg-black/30 border border-white/[0.04]">
+                                        <span class="text-[9px] text-slate-400 uppercase font-semibold block truncate">Hari Ini</span>
+                                        <p class="text-xs font-bold text-slate-100 num-tabular truncate mt-0.5">
+                                            Rp {{ number_format($userTodayExpense, 0, ',', '.') }}
+                                        </p>
+                                    </div>
+                                    <div class="p-2 rounded-xl bg-black/30 border border-white/[0.04]">
+                                        <span class="text-[9px] text-emerald-400/90 uppercase font-semibold block truncate">Masuk</span>
+                                        <p class="text-xs font-bold text-emerald-400 num-tabular truncate mt-0.5">
+                                            +Rp {{ number_format($userPeriodIncome, 0, ',', '.') }}
+                                        </p>
+                                    </div>
+                                    <div class="p-2 rounded-xl bg-black/30 border border-white/[0.04]">
+                                        <span class="text-[9px] text-rose-400/90 uppercase font-semibold block truncate">Keluar</span>
+                                        <p class="text-xs font-bold text-rose-400 num-tabular truncate mt-0.5">
+                                            -Rp {{ number_format($userPeriodExpense, 0, ',', '.') }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Card 2: Finansial Pasangan -->
+                            <div class="p-3.5 rounded-2xl bg-gradient-to-br from-pink-500/10 via-white/[0.02] to-transparent border border-pink-500/30 space-y-3">
+                                <div class="flex items-center justify-between gap-2">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <div class="w-7 h-7 rounded-xl bg-pink-500/20 text-pink-300 font-extrabold text-xs flex items-center justify-center border border-pink-500/30 flex-shrink-0">
+                                            {{ strtoupper(substr($partner->name, 0, 1)) }}
+                                        </div>
+                                        <div class="min-w-0">
+                                            <h4 class="text-xs font-bold text-pink-200 truncate flex items-center gap-1">
+                                                <span>{{ $partner->name }}</span>
+                                                <span class="text-[9px] text-pink-400 font-semibold px-1.5 py-0.2 bg-pink-500/20 rounded-md">💕 Pasangan</span>
+                                            </h4>
+                                            <p class="text-[9px] text-pink-400/80 font-semibold uppercase tracking-wider">Saldo Periode Ini</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-xs font-bold num-tabular px-2.5 py-1 rounded-xl {{ $partnerPeriodBalance >= 0 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-300 border border-rose-500/30' }}">
+                                        {{ $partnerPeriodBalance < 0 ? '-Rp ' . number_format(abs($partnerPeriodBalance), 0, ',', '.') : 'Rp ' . number_format($partnerPeriodBalance, 0, ',', '.') }}
+                                    </span>
+                                </div>
+
+                                <div class="grid grid-cols-3 gap-1.5 pt-2 border-t border-white/[0.06] text-left">
+                                    <div class="p-2 rounded-xl bg-black/30 border border-white/[0.04]">
+                                        <span class="text-[9px] text-slate-400 uppercase font-semibold block truncate">Hari Ini</span>
+                                        <p class="text-xs font-bold text-slate-100 num-tabular truncate mt-0.5">
+                                            Rp {{ number_format($partnerTodayExpense, 0, ',', '.') }}
+                                        </p>
+                                    </div>
+                                    <div class="p-2 rounded-xl bg-black/30 border border-white/[0.04]">
+                                        <span class="text-[9px] text-emerald-400/90 uppercase font-semibold block truncate">Masuk</span>
+                                        <p class="text-xs font-bold text-emerald-400 num-tabular truncate mt-0.5">
+                                            +Rp {{ number_format($partnerPeriodIncome, 0, ',', '.') }}
+                                        </p>
+                                    </div>
+                                    <div class="p-2 rounded-xl bg-black/30 border border-white/[0.04]">
+                                        <span class="text-[9px] text-rose-400/90 uppercase font-semibold block truncate">Keluar</span>
+                                        <p class="text-xs font-bold text-rose-400 num-tabular truncate mt-0.5">
+                                            -Rp {{ number_format($partnerPeriodExpense, 0, ',', '.') }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- Perbandingan Rasio Kontribusi Pengeluaran -->
+                        @php
+                            $totalExpenseBoth = $userPeriodExpense + $partnerPeriodExpense;
+                            $userExpensePct = $totalExpenseBoth > 0 ? round(($userPeriodExpense / $totalExpenseBoth) * 100) : 50;
+                            $partnerExpensePct = 100 - $userExpensePct;
+                        @endphp
+                        @if($totalExpenseBoth > 0)
+                            <div class="p-2.5 rounded-xl surface-inset border border-white/[0.04] space-y-1.5">
+                                <div class="flex items-center justify-between text-[10px] text-slate-400 font-medium">
+                                    <span class="flex items-center gap-1">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                                        <span>Pengeluaran Anda: <strong class="text-slate-200 num-tabular">{{ $userExpensePct }}%</strong> (Rp {{ number_format($userPeriodExpense, 0, ',', '.') }})</span>
+                                    </span>
+                                    <span class="flex items-center gap-1">
+                                        <span>Pengeluaran {{ Str::limit($partner->name, 10) }}: <strong class="text-pink-300 num-tabular">{{ $partnerExpensePct }}%</strong> (Rp {{ number_format($partnerPeriodExpense, 0, ',', '.') }})</span>
+                                        <span class="w-1.5 h-1.5 rounded-full bg-pink-400"></span>
+                                    </span>
+                                </div>
+                                <div class="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden flex">
+                                    <div class="bg-emerald-400 h-full transition-all duration-500" style="width: {{ $userExpensePct }}%"></div>
+                                    <div class="bg-pink-400 h-full transition-all duration-500" style="width: {{ $partnerExpensePct }}%"></div>
+                                </div>
+                            </div>
+                        @endif
+
+                    </div>
+                @endif
 
             </div>
 

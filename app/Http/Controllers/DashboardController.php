@@ -166,6 +166,45 @@ class DashboardController extends Controller
                 ->sum('amount')
             : 0.0;
 
+        // User & Partner individual period breakdown
+        if ($isCoupled && $partner) {
+            $userPeriodQuery = Transaction::where('user_id', $user->id);
+            if ($startDate && $endDate) {
+                $userPeriodQuery->whereBetween('transaction_date', [$startDate, $endDate]);
+            } elseif ($startDate) {
+                $userPeriodQuery->where('transaction_date', '>=', $startDate);
+            } elseif ($endDate) {
+                $userPeriodQuery->where('transaction_date', '<=', $endDate);
+            }
+            $userPeriodIncome = (float) (clone $userPeriodQuery)->where('type', 'income')->sum('amount');
+            $userPeriodExpense = (float) (clone $userPeriodQuery)->where('type', 'expense')->sum('amount');
+            $userPeriodBalance = $userPeriodIncome - $userPeriodExpense;
+            $userPeriodTxCount = (clone $userPeriodQuery)->count();
+
+            $partnerPeriodQuery = Transaction::where('user_id', $partner->id);
+            if ($startDate && $endDate) {
+                $partnerPeriodQuery->whereBetween('transaction_date', [$startDate, $endDate]);
+            } elseif ($startDate) {
+                $partnerPeriodQuery->where('transaction_date', '>=', $startDate);
+            } elseif ($endDate) {
+                $partnerPeriodQuery->where('transaction_date', '<=', $endDate);
+            }
+            $partnerPeriodIncome = (float) (clone $partnerPeriodQuery)->where('type', 'income')->sum('amount');
+            $partnerPeriodExpense = (float) (clone $partnerPeriodQuery)->where('type', 'expense')->sum('amount');
+            $partnerPeriodBalance = $partnerPeriodIncome - $partnerPeriodExpense;
+            $partnerPeriodTxCount = (clone $partnerPeriodQuery)->count();
+        } else {
+            $userPeriodIncome = $periodIncome;
+            $userPeriodExpense = $periodExpense;
+            $userPeriodBalance = $periodBalance;
+            $userPeriodTxCount = $periodTransactionCount;
+
+            $partnerPeriodIncome = 0.0;
+            $partnerPeriodExpense = 0.0;
+            $partnerPeriodBalance = 0.0;
+            $partnerPeriodTxCount = 0;
+        }
+
         // Budgets
         if ($scope === 'couple' && $isCoupled && $partner) {
             $allBudgets = Budget::where(function ($q) use ($user, $partner) {
@@ -231,6 +270,14 @@ class DashboardController extends Controller
             'todayExpenseCount',
             'userTodayExpense',
             'partnerTodayExpense',
+            'userPeriodIncome',
+            'userPeriodExpense',
+            'userPeriodBalance',
+            'userPeriodTxCount',
+            'partnerPeriodIncome',
+            'partnerPeriodExpense',
+            'partnerPeriodBalance',
+            'partnerPeriodTxCount',
             'activeBudgets',
             'allBudgets',
             'recentTransactions',

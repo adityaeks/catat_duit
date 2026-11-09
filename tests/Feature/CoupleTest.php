@@ -212,6 +212,14 @@ class CoupleTest extends TestCase
         $responseCouple->assertViewHas('todayExpense', 80000.0);
         $responseCouple->assertViewHas('userTodayExpense', 50000.0);
         $responseCouple->assertViewHas('partnerTodayExpense', 30000.0);
+        $responseCouple->assertViewHas('userPeriodIncome', 5000000.0);
+        $responseCouple->assertViewHas('userPeriodExpense', 50000.0);
+        $responseCouple->assertViewHas('userPeriodBalance', 4950000.0);
+        $responseCouple->assertViewHas('partnerPeriodIncome', 3000000.0);
+        $responseCouple->assertViewHas('partnerPeriodExpense', 30000.0);
+        $responseCouple->assertViewHas('partnerPeriodBalance', 2970000.0);
+        $responseCouple->assertSee('Rincian Finansial Masing-Masing');
+        $responseCouple->assertSee('Pasangan');
 
         // Scope Personal
         $responsePersonal = $this->actingAs($userA)->get(route('dashboard', ['scope' => 'personal']));
